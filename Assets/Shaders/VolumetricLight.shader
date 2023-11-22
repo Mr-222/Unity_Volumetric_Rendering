@@ -58,7 +58,7 @@ Shader "Hidden/VolumetricLight"
             float ComputeScattering(float LoV, float g)
             {
                 real result = 1.0f - g * g;
-                result /= 4.0f * PI * pow(1.0f + g * g - (2.0f * g) * LoV, 1.5f);
+                result /= 4.0f * PI * pow(1.0f + g * g - 2.0f * g * LoV, 1.5f);
                 return result;
             }
 
