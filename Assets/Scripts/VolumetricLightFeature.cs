@@ -1,5 +1,4 @@
 using System;
-using System.Reflection;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
@@ -13,23 +12,51 @@ public class VolumetricLightFeature : ScriptableRendererFeature
         
         [Range(-1 ,1)]
         public float scattering = 0.4f;
+        
+        [Range(0.2f, 10.0f)]
+        public float intensity = 1;
 
-        [Range(10, 100)]
-        public int steps = 25;
+        [Range(5, 100)]
+        public int steps = 10;
 
         [Range(10, 300)]
         public int maxDistance = 75;
+
+        [Range(0.5f, 3f)] 
+        public float jitter = 2.5f;
+
+        public enum DownSample
+        {
+            off = 1,
+            half = 2,
+            quarter = 4
+        }
+        public DownSample downsampling = DownSample.off;
+
+        [Serializable]
+        public class GaussianBlur
+        {
+            [Range(3, 15)]
+            public float amount;
+            
+            [Range(3, 7)]
+            public int samples;
+        }
+        public GaussianBlur gaussianBlur = new GaussianBlur { amount = 5, samples = 5 };
         
         public RenderPassEvent renderPassEvent = RenderPassEvent.BeforeRenderingPostProcessing;
     }
 
     public Settings settings = new Settings();
+    
+    
 
     class Pass : ScriptableRenderPass
     {
         public Settings settings;
-        private RTHandle source;
-        private RTHandle tempTexture;
+        private RenderTexture tempTexture1;
+        private RenderTexture tempTexture2;
+        private RenderTexture tempTexture3;
 
         private string profilerTag;
         
@@ -37,50 +64,78 @@ public class VolumetricLightFeature : ScriptableRendererFeature
         {
             this.profilerTag = profilerTag;
         }
-        
-        public void SetUp(RTHandle source)
-        {
-            this.source = source;
-        }
 
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
             base.Configure(cmd, cameraTextureDescriptor);
-            cameraTextureDescriptor.colorFormat = RenderTextureFormat.R16;
+            
+            var originalDescriptor = cameraTextureDescriptor;
+            
+            cameraTextureDescriptor.colorFormat = RenderTextureFormat.ARGB64;
             cameraTextureDescriptor.msaaSamples = 1;
+            cameraTextureDescriptor.width /= (int)settings.downsampling;
+            cameraTextureDescriptor.height /= (int)settings.downsampling;
 
-            if (tempTexture == null || tempTexture.rt.width != cameraTextureDescriptor.width 
-                                    || tempTexture.rt.height != cameraTextureDescriptor.height)
+            if (tempTexture1 == null || tempTexture1.width != cameraTextureDescriptor.width
+                                     || tempTexture1.height != cameraTextureDescriptor.height)
             {
-                if (tempTexture != null)
-                    tempTexture.Release();
-                tempTexture = RTHandles.Alloc(cameraTextureDescriptor);
+                if (tempTexture1 != null)
+                {
+                    tempTexture1.Release();
+                }
+                if (tempTexture2 != null)
+                {
+                    tempTexture2.Release();
+                }
+                if (tempTexture3 != null)
+                {
+                    tempTexture3.Release();
+                }
+                
+                tempTexture1 = RenderTexture.GetTemporary(cameraTextureDescriptor); 
+                tempTexture2 = RenderTexture.GetTemporary(cameraTextureDescriptor);
+                tempTexture3 = RenderTexture.GetTemporary(originalDescriptor);
             }
-            ConfigureTarget(tempTexture);
-            ConfigureClear(ClearFlag.All, Color.black);
         }
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             CommandBuffer cmd = CommandBufferPool.Get(profilerTag);
+            
+            settings.material.SetFloat("_Scattering", settings.scattering);
+            settings.material.SetFloat("_Intensity", settings.intensity);
+            settings.material.SetFloat("_Steps", settings.steps);
+            settings.material.SetFloat("_MaxDistance", settings.maxDistance);
+            settings.material.SetFloat("_Jitter", settings.jitter);
+            settings.material.SetFloat("_GaussAmount", settings.gaussianBlur.amount);
+            settings.material.SetInt("_GaussSamples", settings.gaussianBlur.samples);
 
-            try
-            { 
-                settings.material.SetFloat("_Scattering", settings.scattering);
-                settings.material.SetFloat("_Steps", settings.steps);
-                settings.material.SetFloat("_MaxDistance", settings.maxDistance);
-                
-                cmd.Blit(source, tempTexture);
-                cmd.Blit(tempTexture, source, settings.material, 0);
-                
-                context.ExecuteCommandBuffer(cmd);
-            }
-            catch
-            {
-                Debug.LogError("VolumetricLightFeature: Something went wrong with the blit");
-            }
+            var cameraTarget = renderingData.cameraData.renderer.cameraColorTargetHandle.nameID;
+            cmd.Blit(cameraTarget, tempTexture1, settings.material, 0);
+            cmd.Blit(tempTexture1, tempTexture2, settings.material, 1);
+            cmd.Blit(tempTexture2, cameraTarget, settings.material, 2);
+            
+            
+            context.ExecuteCommandBuffer(cmd);
+            
             cmd.Clear();
             CommandBufferPool.Release(cmd);
+        }
+        
+        public void Dispose()
+        {
+            if (tempTexture1 != null)
+            {
+                tempTexture1.Release();
+            }
+            if (tempTexture2 != null)
+            {
+                tempTexture2.Release();
+            }
+            if (tempTexture3 != null)
+            {
+                tempTexture3.Release();
+            }
         }
     }
     
@@ -94,14 +149,18 @@ public class VolumetricLightFeature : ScriptableRendererFeature
         pass.renderPassEvent = settings.renderPassEvent;
     }
 
-    public override void SetupRenderPasses(ScriptableRenderer renderer, in RenderingData renderingData)
-    {
-        base.SetupRenderPasses(renderer, in renderingData);
-        pass.SetUp(renderer.cameraColorTargetHandle);
-    }
-
     public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
     {
         renderer.EnqueuePass(pass);
+    }
+
+    public void OnDisable()
+    {
+        pass.Dispose();
+    }
+
+    public void OnDestroy()
+    {
+        pass.Dispose();
     }
 }

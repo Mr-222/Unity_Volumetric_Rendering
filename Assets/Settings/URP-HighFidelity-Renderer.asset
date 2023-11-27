@@ -92,7 +92,7 @@ MonoBehaviour:
     failOperation: 0
     zFailOperation: 0
   m_ShadowTransparentReceive: 1
-  m_RenderingMode: 2
+  m_RenderingMode: 0
   m_DepthPrimingMode: 0
   m_CopyDepthMode: 0
   m_AccurateGbufferNormals: 0
@@ -109,10 +109,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8eeac379c09227f4180bbda02fd5d7a7, type: 3}
   m_Name: Volumetric Light
   m_EditorClassIdentifier: 
-  m_Active: 1
+  m_Active: 0
   settings:
     material: {fileID: 2100000, guid: e8fc82e49bd504b46bd531d2308b66d3, type: 2}
-    scattering: 0.2
-    steps: 70
+    scattering: 0
+    intensity: 1
+    steps: 5
     maxDistance: 75
+    jitter: 2.58
+    downsampling: 2
+    gaussianBlur:
+      amount: 3
+      samples: 7
     renderPassEvent: 550

@@ -1,38 +1,43 @@
 Shader "Hidden/VolumetricLight"
 {
+    Properties
+    {
+        // If you provide a mat material that doesn't have a _MainTex property, Blit doesn't use source.
+        _MainTex ("Texture", 2D) = "white" {}
+    }
+    
     SubShader
     {
         Cull Off
         ZWrite Off
-        Blend One One
+        //Blend One One
         ZTest Always
         Tags
         {
             "RenderPipeline"="UniversalRenderPipeline"
         }
         
-        HLSLINCLUDE
-        
-        #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
-        #include "Helpers.hlsl"
-        
-        TEXTURE2D(_MainTex);
-        SAMPLER(sampler_MainTex);
-        float _Scattering;
-        float _Steps;
-        float _MaxDistance;
-        
-        
-        ENDHLSL
-        
         Pass
         {
+            Name "Volumetric Scattering"
+            
             HLSLPROGRAM
 
             #pragma vertex vert
             #pragma fragment frag
             #pragma multi_compile _  _MAIN_LIGHT_SHADOWS_CASCADE 
             #pragma target 4.5
+
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
+            #include "Helpers.hlsl"
+            
+            TEXTURE2D(_MainTex);
+            SAMPLER(sampler_MainTex);
+            float _Scattering;
+            float _Intensity;
+            float _Steps;
+            float _MaxDistance;
+            float _Jitter;
 
             struct Attributes
             {
@@ -51,7 +56,7 @@ Shader "Hidden/VolumetricLight"
                 Varyings output;
                 output.positionCS = TransformObjectToHClip(input.positionOS);
                 output.uv = input.uv;
-
+                
                 return output;
             }
 
@@ -76,20 +81,18 @@ Shader "Hidden/VolumetricLight"
                 
                 float stepLength = rayLength / _Steps;
                 float3 step = rayDirection * stepLength;
-                float3 currentPosition = startPosition;
+                
                 // Offset the start position to avoid band artifact (convert to noise and we can blur in later stage)
-                currentPosition += step * InterleavedGradientNoise(input.uv, 0);
+                float rayStartOffset = rand(input.uv) * stepLength;
+                float3 currentPosition = startPosition + rayDirection * rayStartOffset * _Jitter;
 
                 float3 accumFog = 0;
                 for (int i=0; i<_Steps-1; ++i)
                 {
                     float shadowMapValue = ShadowAtten(currentPosition);
-                    // Visibility term is 1, it is in light
-                    if (shadowMapValue > 0)
-                    {
-                        float kernelColor = ComputeScattering(dot(rayDirection, lightDirecrion), _Scattering);
-                        accumFog += kernelColor.xxx * mainLight.color;
-                    }
+                    // If shadowMapValue > 0, it is in light
+                    float kernelColor = ComputeScattering(dot(rayDirection, lightDirecrion), _Scattering);
+                    accumFog += kernelColor.xxx * mainLight.color * _Intensity * max(shadowMapValue, 0);
                     currentPosition += step;
                 }
                 accumFog /= _Steps;
@@ -99,5 +102,9 @@ Shader "Hidden/VolumetricLight"
             
             ENDHLSL
         }
+        
+        UsePass "Hidden/Gaussian_Blur_X/GAUSSIAN_BLUR_X"
+        
+        UsePass "Hidden/Gaussian_Blur_Y/GAUSSIAN_BLUR_Y"
     }
 }
