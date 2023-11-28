@@ -8,10 +8,6 @@ Shader "Hidden/VolumetricLight"
     
     SubShader
     {
-        Cull Off
-        ZWrite Off
-        //Blend One One
-        ZTest Always
         Tags
         {
             "RenderPipeline"="UniversalRenderPipeline"
@@ -20,6 +16,11 @@ Shader "Hidden/VolumetricLight"
         Pass
         {
             Name "Volumetric Scattering"
+            
+            Cull Off
+            ZWrite Off
+            ZTest Always
+            Blend One Zero
             
             HLSLPROGRAM
 
@@ -106,5 +107,9 @@ Shader "Hidden/VolumetricLight"
         UsePass "Hidden/Gaussian_Blur_X/GAUSSIAN_BLUR_X"
         
         UsePass "Hidden/Gaussian_Blur_Y/GAUSSIAN_BLUR_Y"
+        
+        UsePass "Hidden/DownSampleDepth/DOWNSAMPLEDEPTH"
+        
+        UsePass "Hidden/UpSamplingAndBlend/UpSamplingAndBlend"
     }
 }

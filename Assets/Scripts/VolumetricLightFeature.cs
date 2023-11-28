@@ -33,6 +33,13 @@ public class VolumetricLightFeature : ScriptableRendererFeature
         }
         public DownSample downsampling = DownSample.off;
 
+        public enum UpSample
+        {
+            normal = 1,
+            depthAware = 2
+        }
+        public UpSample upsampling = UpSample.normal;
+
         [Serializable]
         public class GaussianBlur
         {
@@ -111,10 +118,32 @@ public class VolumetricLightFeature : ScriptableRendererFeature
             settings.material.SetInt("_GaussSamples", settings.gaussianBlur.samples);
 
             var cameraTarget = renderingData.cameraData.renderer.cameraColorTargetHandle.nameID;
+            // Raymarch
             cmd.Blit(cameraTarget, tempTexture1, settings.material, 0);
+            // Gaussian Blur X
             cmd.Blit(tempTexture1, tempTexture2, settings.material, 1);
-            cmd.Blit(tempTexture2, cameraTarget, settings.material, 2);
-            
+
+            if (settings.upsampling == Settings.UpSample.normal)
+            {
+                settings.material.SetInt("_BlendSrc", (int)BlendMode.One);
+                settings.material.SetInt("_BlendDst", (int)BlendMode.One);
+                // Gaussian Blur Y
+                cmd.Blit(tempTexture2, cameraTarget, settings.material, 2);
+            }
+            else
+            {
+                settings.material.SetInt("_BlendSrc", (int)BlendMode.One);
+                settings.material.SetInt("_BlendDst", (int)BlendMode.Zero);
+                // Gaussian Blur Y
+                cmd.Blit(tempTexture2, tempTexture1, settings.material, 2);
+                // Downsample Depth, use tempTexture2 as low res depth buffer
+                cmd.Blit(cameraTarget, tempTexture2, settings.material, 3);
+                // Upsampling and Additive Blending
+                cmd.SetGlobalTexture("_LowResDepth", tempTexture2);
+                cmd.SetGlobalTexture("_VolumetricTexture", tempTexture1);
+                cmd.Blit(cameraTarget, tempTexture3);
+                cmd.Blit(tempTexture3, cameraTarget, settings.material, 4);
+            }
             
             context.ExecuteCommandBuffer(cmd);
             

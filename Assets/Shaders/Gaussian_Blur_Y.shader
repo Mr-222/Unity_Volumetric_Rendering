@@ -2,22 +2,20 @@ Shader "Hidden/Gaussian_Blur_Y"
 {
      SubShader
      {
-        Blend One One
-
         Pass
         {
             Name "Gaussian_Blur_Y"
-
-            HLSLINCLUDE
-
+            
+            Cull Off 
+            ZWrite Off 
+            ZTest Always
+            Blend [_BlendSrc] [_BlendDst]
+            
+            HLSLPROGRAM
+            
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
             #include "Macros.hlsl"
-            
-            ENDHLSL
-            
-            
-            HLSLPROGRAM
 
             #pragma vertex vert
             #pragma fragment frag

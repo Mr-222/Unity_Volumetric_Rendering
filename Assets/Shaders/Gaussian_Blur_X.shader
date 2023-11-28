@@ -7,17 +7,17 @@ Shader "Hidden/Gaussian_Blur_X"
         Pass
         {
             Name "Gaussian_Blur_X"
-
-            HLSLINCLUDE
+            
+            Cull Off
+            ZWrite Off
+            ZTest Always
+            Blend One Zero
+            
+            HLSLPROGRAM
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
             #include "Macros.hlsl"
-            
-            ENDHLSL
-            
-            
-            HLSLPROGRAM
 
             #pragma vertex vert
             #pragma fragment frag
