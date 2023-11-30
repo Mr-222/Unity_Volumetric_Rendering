@@ -13,7 +13,7 @@ public class VolumetricLightFeature : ScriptableRendererFeature
         [Range(-1 ,1)]
         public float scattering = 0.4f;
         
-        [Range(0.2f, 10.0f)]
+        [Range(0.2f, 3.0f)]
         public float intensity = 1;
 
         [Range(5, 100)]
@@ -50,13 +50,13 @@ public class VolumetricLightFeature : ScriptableRendererFeature
         [Serializable]
         public class GaussianBlur
         {
-            [Range(3, 15)]
+            [Range(1, 10)]
             public float amount;
             
             [Range(3, 7)]
             public int samples;
         }
-        public GaussianBlur gaussianBlur = new GaussianBlur { amount = 5, samples = 5 };
+        public GaussianBlur gaussianBlur = new GaussianBlur { amount = 1.5f, samples = 5 };
         
         public RenderPassEvent renderPassEvent = RenderPassEvent.BeforeRenderingPostProcessing;
     }
@@ -139,7 +139,7 @@ public class VolumetricLightFeature : ScriptableRendererFeature
             cmd.Blit(cameraTarget, tempTexture1, settings.material, 0);
             // Gaussian Blur X
             cmd.Blit(tempTexture1, tempTexture2, settings.material, 1);
-
+            
             if (settings.upsampling == Settings.UpSample.normal)
             {
                 settings.material.SetInt("_BlendSrc", (int)BlendMode.One);

@@ -283,7 +283,7 @@ MonoBehaviour:
   m_VolumeTrigger: {fileID: 0}
   m_VolumeFrameworkUpdateModeOption: 2
   m_RenderPostProcessing: 1
-  m_Antialiasing: 0
+  m_Antialiasing: 3
   m_AntialiasingQuality: 2
   m_StopNaN: 0
   m_Dithering: 0
@@ -362,8 +362,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 145693855}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.06651083, y: -0.18506739, z: 0.012936294, w: 0.9803872}
-  m_LocalPosition: {x: 11.886568, y: -2.1020203, z: -6.3055725}
+  m_LocalRotation: {x: -0.123227775, y: -0.6350737, z: -0.103595085, w: 0.7554895}
+  m_LocalPosition: {x: 11.098683, y: -0.25585985, z: -3.662828}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

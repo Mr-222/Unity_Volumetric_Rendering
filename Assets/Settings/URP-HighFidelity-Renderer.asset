@@ -92,7 +92,7 @@ MonoBehaviour:
     failOperation: 0
     zFailOperation: 0
   m_ShadowTransparentReceive: 1
-  m_RenderingMode: 0
+  m_RenderingMode: 2
   m_DepthPrimingMode: 0
   m_CopyDepthMode: 0
   m_AccurateGbufferNormals: 0
@@ -112,14 +112,15 @@ MonoBehaviour:
   m_Active: 1
   settings:
     material: {fileID: 2100000, guid: e8fc82e49bd504b46bd531d2308b66d3, type: 2}
-    scattering: -0.04
-    intensity: 1
-    steps: 10
-    maxDistance: 57
+    scattering: -0.05
+    intensity: 0.48
+    steps: 15
+    maxDistance: 81
     jitter: 1
     downsampling: 2
     upsampling: 2
+    phaseFunction: 0
     gaussianBlur:
-      amount: 5
-      samples: 3
+      amount: 3
+      samples: 7
     renderPassEvent: 550

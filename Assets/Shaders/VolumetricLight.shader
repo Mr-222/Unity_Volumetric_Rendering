@@ -75,7 +75,7 @@ Shader "Hidden/VolumetricLight"
                 return (1.0f - k * k) / (4.0 * PI * pow(1.0f + k * LoV, 2.0f));
             }
 
-            float ComputeScattering(float LoV, float g)
+            float phaseFunction(float LoV, float g)
             {
                 #if defined(_HENYEY_GREENSTEIN)
                     return HenyeyGreenStein(LoV, g);
@@ -83,6 +83,7 @@ Shader "Hidden/VolumetricLight"
                     float k = 1.55f * g - 0.55f * g * g * g;
                     return Schlick(LoV, k);
                 #endif
+                    return HenyeyGreenStein(LoV, g);
             }
 
             float4 frag(Varyings input) : SV_Target
@@ -102,18 +103,23 @@ Shader "Hidden/VolumetricLight"
                 
                 // Offset the start position to avoid band artifact (convert to noise and we can blur in later stage)
                 float rayStartOffset = rand(input.uv) * stepLength;
+              
                 float3 currentPosition = startPosition + rayDirection * rayStartOffset * _Jitter;
 
                 float3 accumFog = 0;
+                float transmittance = 1.0;
                 for (int i=0; i<_Steps-1; ++i)
                 {
-                    float shadowMapValue = ShadowAtten(currentPosition);
-                    // If shadowMapValue > 0, it is in light
-                    float kernelColor = ComputeScattering(dot(rayDirection, lightDirecrion), _Scattering);
-                    accumFog += kernelColor.xxx * mainLight.color * _Intensity * max(shadowMapValue, 0);
+                    float3 sigma_s = float3(0.5, 1, 2);
+                    float3 sigma_e = float3(0.5, 0.5, 0.5);
+                    // See slide 28 at http://www.frostbite.com/2015/08/physically-based-unified-volumetric-rendering-in-frostbite/
+                    float3 S = mainLight.color * _Intensity * sigma_s * phaseFunction(dot(rayDirection, lightDirecrion), _Scattering) * ShadowAtten(currentPosition);
+                    float3 Sint = (S - S * exp(-sigma_e * stepLength)) / sigma_e;
+                    accumFog += transmittance * Sint;
+                    transmittance *= exp(-sigma_e * stepLength);
                     currentPosition += step;
                 }
-                accumFog /= _Steps;
+                accumFog *= PI;
                 
                 return float4(accumFog , 1.0);
             }
