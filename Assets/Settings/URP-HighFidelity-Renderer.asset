@@ -118,6 +118,7 @@ MonoBehaviour:
     maxDistance: 57
     jitter: 1
     downsampling: 2
+    upsampling: 2
     gaussianBlur:
       amount: 5
       samples: 3

@@ -29,6 +29,8 @@ Shader "Hidden/VolumetricLight"
             #pragma multi_compile _  _MAIN_LIGHT_SHADOWS_CASCADE 
             #pragma target 4.5
 
+            #pragma  multi_compile _ _SCHLICK _HENYEY_GREENSTEIN
+
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
             #include "Helpers.hlsl"
             
@@ -61,11 +63,26 @@ Shader "Hidden/VolumetricLight"
                 return output;
             }
 
-            float ComputeScattering(float LoV, float g)
+            float HenyeyGreenStein(float LoV, float g)
             {
-                real result = 1.0f - g * g;
+                float result = 1.0f - g * g;
                 result /= 4.0f * PI * pow(1.0f + g * g - 2.0f * g * LoV, 1.5f);
                 return result;
+            }
+
+            float Schlick(float LoV, float k)
+            {
+                return (1.0f - k * k) / (4.0 * PI * pow(1.0f + k * LoV, 2.0f));
+            }
+
+            float ComputeScattering(float LoV, float g)
+            {
+                #if defined(_HENYEY_GREENSTEIN)
+                    return HenyeyGreenStein(LoV, g);
+                #elif defined(_SCHLICK)
+                    float k = 1.55f * g - 0.55f * g * g * g;
+                    return Schlick(LoV, k);
+                #endif
             }
 
             float4 frag(Varyings input) : SV_Target

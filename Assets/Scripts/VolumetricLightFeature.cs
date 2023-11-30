@@ -40,6 +40,13 @@ public class VolumetricLightFeature : ScriptableRendererFeature
         }
         public UpSample upsampling = UpSample.normal;
 
+        public enum PhaseFunction
+        {
+            HenyeyGreenstein,
+            Schlick
+        }
+        public PhaseFunction phaseFunction = PhaseFunction.HenyeyGreenstein;
+
         [Serializable]
         public class GaussianBlur
         {
@@ -116,6 +123,16 @@ public class VolumetricLightFeature : ScriptableRendererFeature
             settings.material.SetFloat("_Jitter", settings.jitter);
             settings.material.SetFloat("_GaussAmount", settings.gaussianBlur.amount);
             settings.material.SetInt("_GaussSamples", settings.gaussianBlur.samples);
+            if (settings.phaseFunction == Settings.PhaseFunction.HenyeyGreenstein)
+            {
+                settings.material.EnableKeyword("_HENYEY_GREENSTEIN");
+                settings.material.DisableKeyword("_SCHLICK");
+            }
+            else
+            {
+                settings.material.EnableKeyword("_SCHLICK");
+                settings.material.DisableKeyword("_HENYEY_GREENSTEIN");
+            }
 
             var cameraTarget = renderingData.cameraData.renderer.cameraColorTargetHandle.nameID;
             // Raymarch
