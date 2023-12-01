@@ -37,6 +37,8 @@ Shader "Hidden/VolumetricLight"
             TEXTURE2D(_MainTex);
             SAMPLER(sampler_MainTex);
             float _Scattering;
+            float _SigmaS;
+            float _SigmaT;
             float _Intensity;
             float _Steps;
             float _MaxDistance;
@@ -57,7 +59,7 @@ Shader "Hidden/VolumetricLight"
             Varyings vert(Attributes input)
             {
                 Varyings output;
-                output.positionCS = TransformObjectToHClip(input.positionOS);
+                output.positionCS = TransformObjectToHClip(input.positionOS.xyz);
                 output.uv = input.uv;
                 
                 return output;
@@ -110,13 +112,12 @@ Shader "Hidden/VolumetricLight"
                 float transmittance = 1.0;
                 for (int i=0; i<_Steps-1; ++i)
                 {
-                    float3 sigma_s = float3(0.5, 1, 2);
-                    float3 sigma_e = float3(0.5, 0.5, 0.5);
                     // See slide 28 at http://www.frostbite.com/2015/08/physically-based-unified-volumetric-rendering-in-frostbite/
-                    float3 S = mainLight.color * _Intensity * sigma_s * phaseFunction(dot(rayDirection, lightDirecrion), _Scattering) * ShadowAtten(currentPosition);
-                    float3 Sint = (S - S * exp(-sigma_e * stepLength)) / sigma_e;
+                    float3 S = mainLight.color * _Intensity * _SigmaS *
+                        phaseFunction(dot(rayDirection, lightDirecrion), _Scattering) * ShadowAtten(currentPosition);
+                    float3 Sint = (S - S * exp(-_SigmaT * stepLength)) / _SigmaT;
                     accumFog += transmittance * Sint;
-                    transmittance *= exp(-sigma_e * stepLength);
+                    transmittance *= exp(-_SigmaT * stepLength);
                     currentPosition += step;
                 }
                 accumFog *= PI;

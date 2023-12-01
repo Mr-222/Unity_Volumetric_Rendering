@@ -112,15 +112,17 @@ MonoBehaviour:
   m_Active: 1
   settings:
     material: {fileID: 2100000, guid: e8fc82e49bd504b46bd531d2308b66d3, type: 2}
-    scattering: -0.05
-    intensity: 0.48
-    steps: 15
+    scattering: 0.07
+    sigmaS: 0.5
+    sigmaT: 0.7
+    intensity: 2.49
+    steps: 30
     maxDistance: 81
     jitter: 1
     downsampling: 2
     upsampling: 2
     phaseFunction: 0
     gaussianBlur:
-      amount: 3
+      amount: 2.5
       samples: 7
     renderPassEvent: 550

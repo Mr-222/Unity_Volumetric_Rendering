@@ -12,6 +12,12 @@ public class VolumetricLightFeature : ScriptableRendererFeature
         
         [Range(-1 ,1)]
         public float scattering = 0.4f;
+
+        [Range(0.01f, 3f)]
+        public float sigmaS = 0.5f;
+
+        [Range(0.01f, 3f)] 
+        public float sigmaT = 0.7f;
         
         [Range(0.2f, 3.0f)]
         public float intensity = 1;
@@ -56,7 +62,7 @@ public class VolumetricLightFeature : ScriptableRendererFeature
             [Range(3, 7)]
             public int samples;
         }
-        public GaussianBlur gaussianBlur = new GaussianBlur { amount = 1.5f, samples = 5 };
+        public GaussianBlur gaussianBlur = new GaussianBlur { amount = 2.5f, samples = 7 };
         
         public RenderPassEvent renderPassEvent = RenderPassEvent.BeforeRenderingPostProcessing;
     }
@@ -117,6 +123,8 @@ public class VolumetricLightFeature : ScriptableRendererFeature
             CommandBuffer cmd = CommandBufferPool.Get(profilerTag);
             
             settings.material.SetFloat("_Scattering", settings.scattering);
+            settings.material.SetFloat("_SigmaS", settings.sigmaS);
+            settings.material.SetFloat("_SigmaT", settings.sigmaT);
             settings.material.SetFloat("_Intensity", settings.intensity);
             settings.material.SetFloat("_Steps", settings.steps);
             settings.material.SetFloat("_MaxDistance", settings.maxDistance);
@@ -208,5 +216,13 @@ public class VolumetricLightFeature : ScriptableRendererFeature
     public void OnDestroy()
     {
         pass.Dispose();
+    }
+    
+    public void OnValidate()
+    {
+        if (settings.sigmaT < settings.sigmaS)
+        {
+            settings.sigmaT = settings.sigmaS;
+        }
     }
 }
