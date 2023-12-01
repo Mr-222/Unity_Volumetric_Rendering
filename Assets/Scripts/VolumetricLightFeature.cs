@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
@@ -19,13 +20,13 @@ public class VolumetricLightFeature : ScriptableRendererFeature
         [Range(0.01f, 3f)] 
         public float sigmaT = 0.7f;
         
-        [Range(0.2f, 3.0f)]
-        public float intensity = 1;
+        [Range(0.2f, 10.0f)]
+        public float intensity = 5;
 
         [Range(5, 100)]
         public int steps = 10;
 
-        [Range(10, 300)]
+        [Range(5, 300)]
         public int maxDistance = 75;
 
         [Range(0.5f, 3f)] 
@@ -141,6 +142,10 @@ public class VolumetricLightFeature : ScriptableRendererFeature
                 settings.material.EnableKeyword("_SCHLICK");
                 settings.material.DisableKeyword("_HENYEY_GREENSTEIN");
             }
+            
+            Light[] lights = FindObjectsOfType<Light>();
+            int addtionalLights = lights.Count(light => light.type != LightType.Directional);
+            settings.material.SetInt("_AddtionalLightsCount", addtionalLights);
 
             var cameraTarget = renderingData.cameraData.renderer.cameraColorTargetHandle.nameID;
             // Raymarch
