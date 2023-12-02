@@ -32,6 +32,13 @@ public class VolumetricLightFeature : ScriptableRendererFeature
         [Range(0.5f, 3f)] 
         public float jitter = 2.5f;
 
+        public enum Mode
+        {
+            mainLightOnly,
+            allLights
+        }
+        public Mode mode = Mode.mainLightOnly;
+
         public enum DownSample
         {
             off = 1,
@@ -142,10 +149,20 @@ public class VolumetricLightFeature : ScriptableRendererFeature
                 settings.material.EnableKeyword("_SCHLICK");
                 settings.material.DisableKeyword("_HENYEY_GREENSTEIN");
             }
+            if (settings.mode == Settings.Mode.mainLightOnly)
+            {
+                settings.material.EnableKeyword("_MAIN_LIGHT_ONLY");
+                settings.material.DisableKeyword("_ALL_LIGHTS");
+            }
+            else
+            {
+                settings.material.EnableKeyword("_ALL_LIGHTS");
+                settings.material.DisableKeyword("_MAIN_LIGHT_ONLY");
+            }
             
             Light[] lights = FindObjectsOfType<Light>();
             int addtionalLights = lights.Count(light => light.type != LightType.Directional);
-            settings.material.SetInt("_AddtionalLightsCount", addtionalLights);
+            settings.material.SetInt("_AdditionalLightsNum", addtionalLights);
 
             var cameraTarget = renderingData.cameraData.renderer.cameraColorTargetHandle.nameID;
             // Raymarch

@@ -31,6 +31,7 @@ Shader "Hidden/VolumetricLight"
             #pragma target 4.5
             
             #pragma  multi_compile _ _SCHLICK _HENYEY_GREENSTEIN
+            #pragma multi_compile _ _MAIN_LIGHT_ONLY _ALL_LIGHTS
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
             #include "Helpers.hlsl"
@@ -44,7 +45,7 @@ Shader "Hidden/VolumetricLight"
             float _Steps;
             float _MaxDistance;
             float _Jitter;
-            int _AddtionalLightsCount;
+            int _AdditionalLightsNum;
 
             struct Attributes
             {
@@ -90,6 +91,58 @@ Shader "Hidden/VolumetricLight"
                     return HenyeyGreenStein(LoV, g);
             }
 
+            float3 rayMarchMainLight(float3 startPosition, float3 step, float2 uv)
+            {
+                float3 rayDirection = normalize(step);
+                float stepLength = length(step);
+                // Offset the start position to avoid band artifact (convert to noise and we can blur in later stage)
+                float3 currentPosition = startPosition + rand(uv) * step * _Jitter;
+                Light light = GetMainLight();
+                float3 accumFog = 0;
+                float transmittance = 1.0;
+
+                // Ray march
+                for (int i=0; i<_Steps; ++i)
+                {
+                    // See slide 28 at http://www.frostbite.com/2015/08/physically-based-unified-volumetric-rendering-in-frostbite/
+                    float3 S = light.color * _Intensity * _SigmaS *
+                        phaseFunction(dot(rayDirection, light.direction), _Scattering) * MainLightShadowAtten(currentPosition);
+                    float3 Sint = (S - S * exp(-_SigmaT * stepLength)) / _SigmaT;
+                    accumFog += transmittance * Sint;
+                    transmittance *= exp(-_SigmaT * stepLength);
+                    currentPosition += step;
+                }
+
+                return accumFog;
+            }
+
+            float3 rayMarchAdditionalLights(float3 startPosition, float3 step, float2 uv)
+            {
+                float3 rayDirection = normalize(step);
+                float stepLength = length(step);
+                // Offset the start position to avoid band artifact (convert to noise and we can blur in later stage)
+                float3 currentPosition = startPosition + rand(uv) * step * _Jitter;
+                float3 accumFog = 0;
+                float transmittance = 1.0;
+
+                // Ray march
+                for (int i=0; i<_Steps; ++i)
+                {
+                    for (int j=0; j<_AdditionalLightsNum; ++j)
+                    {
+                        Light light = GetAdditionalLight(j, currentPosition, 1.0);
+                        float3 S = light.color * _Intensity * _SigmaS * light.distanceAttenuation * light.shadowAttenuation *
+                            phaseFunction(dot(rayDirection, light.direction), _Scattering) * 1.0;
+                        float3 Sint = (S - S * exp(-_SigmaT * stepLength)) / _SigmaT;
+                        accumFog += transmittance * Sint;
+                    }
+                    transmittance *= exp(-_SigmaT * stepLength);
+                    currentPosition += step;
+                }
+
+                return accumFog;
+            }
+
             float4 frag(Varyings input) : SV_Target
             {
                 float3 worldPos = GetWorldPosFromUV(input.uv);
@@ -98,56 +151,16 @@ Shader "Hidden/VolumetricLight"
                 float3 rayDirection = normalize(rayVector);
                 float rayLength = length(rayVector);
                 rayLength = min(rayLength, _MaxDistance);
-
-                // Main light
-                Light mainLight = GetMainLight();
-                float3 lightDirecrion = -normalize(mainLight.direction);
-                
                 float stepLength = rayLength / _Steps;
                 float3 step = rayDirection * stepLength;
-                
-                // Offset the start position to avoid band artifact (convert to noise and we can blur in later stage)
-                float rayStartOffset = rand(input.uv) * stepLength;
-              
-                float3 currentPosition = startPosition + rayDirection * rayStartOffset * _Jitter;
 
-                float3 accumFog = 0;
-                float transmittance = 1.0;
-                for (int i=0; i<_Steps; ++i)
-                {
-                    // See slide 28 at http://www.frostbite.com/2015/08/physically-based-unified-volumetric-rendering-in-frostbite/
-                    float3 S = mainLight.color * _Intensity * _SigmaS *
-                        phaseFunction(dot(rayDirection, lightDirecrion), _Scattering) * MainLightShadowAtten(currentPosition);
-                    float3 Sint = (S - S * exp(-_SigmaT * stepLength)) / _SigmaT;
-                    accumFog += transmittance * Sint;
-                    transmittance *= exp(-_SigmaT * stepLength);
-                    currentPosition += step;
-                }
+                // Main light
+                float3 accumFog = rayMarchMainLight(startPosition, step, input.uv);
 
-                // Additional lights
-                for (int j=0; j<_AddtionalLightsCount; ++j)
-                {
-                    rayVector = worldPos - startPosition;
-                    rayDirection = normalize(rayVector);
-                    rayLength = length(rayVector);
-                    stepLength = rayLength / _Steps;
-                    step = rayDirection * stepLength;
-                    rayStartOffset = rand(input.uv) * stepLength;
-                    currentPosition = startPosition + rayDirection * rayStartOffset * _Jitter;
-                    Light light = GetAdditionalLight(j, currentPosition, 1.0);
-                
-                    transmittance = 1.0;
-                    for (int i=0; i<_Steps; ++i)
-                    {
-                        float3 S = light.color * _Intensity * _SigmaS * light.distanceAttenuation * light.shadowAttenuation *
-                            phaseFunction(dot(rayDirection, light.direction), _Scattering) * 1.0;
-                        float3 Sint = (S - S * exp(-_SigmaT * stepLength)) / _SigmaT;
-                        accumFog += transmittance * Sint;
-                        transmittance *= exp(-_SigmaT * stepLength);
-                        currentPosition += step;
-                        light = GetAdditionalLight(j, currentPosition, 1.0);
-                    }
-                }
+                #if defined(_ALL_LIGHTS)
+                    // Additional lights
+                    accumFog += rayMarchAdditionalLights(startPosition, step, input.uv);
+                #endif
                 
                 return float4(accumFog , 1.0);
             }

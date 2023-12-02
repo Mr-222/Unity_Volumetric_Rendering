@@ -25,23 +25,4 @@ float3 GetWorldPosFromUV(float2 uv)
     return ComputeWorldSpacePosition(uv, depth, UNITY_MATRIX_I_VP);
 }
 
-struct CustomLight
-{
-    float3 lightPosWS;
-    half3 color;
-    half4 distanceAndSpotAttenuation;
-    half4 spotDirection;
-};
-
-CustomLight getAdditionalLightCustom(uint i)
-{
-    CustomLight light;
-    light.lightPosWS = _AdditionalLightsPosition[i];
-    light.color = _AdditionalLightsColor[i].rgb;
-    light.distanceAndSpotAttenuation = _AdditionalLightsAttenuation[i];
-    light.spotDirection = _AdditionalLightsSpotDir[i];
-
-    return light;
-}
-
 #endif
