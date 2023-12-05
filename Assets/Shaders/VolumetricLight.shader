@@ -113,35 +113,7 @@ Shader "Hidden/VolumetricLight"
 
                 return accumFog;
             }
-
-            // Deprecated
-            // We can't directly access shadowMap of additional lights in a post-processing shader
-//            float3 rayMarchAdditionalLights(float3 startPosition, float3 step, float2 uv)
-//            {
-//                float3 rayDirection = normalize(step);
-//                float stepLength = length(step);
-//                // Offset the start position to avoid band artifact (convert to noise and we can blur in later stage)
-//                float3 currentPosition = startPosition + rand(uv) * step * _Jitter;
-//                float3 accumFog = 0;
-//                float transmittance = 1.0;
-//
-//                // Ray march
-//                for (int i=0; i<_Steps; ++i)
-//                {
-//                    for (int j=0; j<_AdditionalLightsNum; ++j)
-//                    {
-//                        Light light = GetAdditionalLight(j, currentPosition);
-//                        float3 S = light.color * _Intensity * _SigmaS * light.distanceAttenuation *
-//                            phaseFunction(dot(rayDirection, light.direction), _Scattering) * 1.0;
-//                        float3 Sint = (S - S * exp(-_SigmaT * stepLength)) / _SigmaT;
-//                        accumFog += transmittance * Sint;
-//                    }
-//                    transmittance *= exp(-_SigmaT * stepLength);
-//                    currentPosition += step;
-//                }
-//
-//                return accumFog;
-//            }
+            
 
             float4 frag(Varyings input) : SV_Target
             {
@@ -153,16 +125,10 @@ Shader "Hidden/VolumetricLight"
                 rayLength = min(rayLength, _MaxDistance);
                 float stepLength = rayLength / _Steps;
                 float3 step = rayDirection * stepLength;
-
-                // Main light
-                float3 accumFog = rayMarchMainLight(startPosition, step, input.uv);
-
-                // #if defined(_ALL_LIGHTS)
-                //     // Additional lights
-                //     accumFog += rayMarchAdditionalLights(startPosition, step, input.uv);
-                // #endif
                 
-                return float4(accumFog , 1.0);
+                float3 accumFog = rayMarchMainLight(startPosition, step, input.uv);
+                
+                return float4(accumFog, 1.0);
             }
             
             ENDHLSL

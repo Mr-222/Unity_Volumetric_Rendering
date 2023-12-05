@@ -77,7 +77,6 @@ public class VolumetricLightFeature : ScriptableRendererFeature
         public Settings settings;
         private RenderTexture tempTexture1;
         private RenderTexture tempTexture2;
-        private RenderTexture tempTexture3;
 
         private string profilerTag;
         
@@ -108,14 +107,9 @@ public class VolumetricLightFeature : ScriptableRendererFeature
                 {
                     tempTexture2.Release();
                 }
-                if (tempTexture3 != null)
-                {
-                    tempTexture3.Release();
-                }
                 
                 tempTexture1 = RenderTexture.GetTemporary(cameraTextureDescriptor); 
                 tempTexture2 = RenderTexture.GetTemporary(cameraTextureDescriptor);
-                tempTexture3 = RenderTexture.GetTemporary(originalDescriptor);
             }
         }
 
@@ -171,8 +165,7 @@ public class VolumetricLightFeature : ScriptableRendererFeature
                 // Upsampling and Additive Blending
                 cmd.SetGlobalTexture("_LowResDepth", tempTexture2);
                 cmd.SetGlobalTexture("_VolumetricTexture", tempTexture1);
-                cmd.Blit(cameraTarget, tempTexture3);
-                cmd.Blit(tempTexture3, cameraTarget, settings.material, 4);
+                cmd.Blit(tempTexture1, cameraTarget, settings.material, 4);
             }
             
             context.ExecuteCommandBuffer(cmd);
@@ -190,10 +183,6 @@ public class VolumetricLightFeature : ScriptableRendererFeature
             if (tempTexture2 != null)
             {
                 tempTexture2.Release();
-            }
-            if (tempTexture3 != null)
-            {
-                tempTexture3.Release();
             }
         }
     }

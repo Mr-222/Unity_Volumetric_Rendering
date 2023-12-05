@@ -9,6 +9,7 @@ Shader "Hidden/UpSamplingAndBlend"
             Cull Off 
             ZWrite Off 
             ZTest Always
+            Blend One One
 
             HLSLPROGRAM
 
@@ -16,9 +17,7 @@ Shader "Hidden/UpSamplingAndBlend"
 
             #pragma vertex vert
             #pragma fragment frag
-
-            TEXTURE2D(_MainTex);
-            SAMPLER(sampler_MainTex);
+            
             TEXTURE2D(_LowResDepth);
             SAMPLER(sampler_LowResDepth);
             TEXTURE2D(_VolumetricTexture);
@@ -89,8 +88,7 @@ Shader "Hidden/UpSamplingAndBlend"
                     break;
                 }
                 
-                float3 screen = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.uv);
-                return float4(col+screen, 1.0);
+                return float4(col, 1.0);
             }
             
             ENDHLSL
