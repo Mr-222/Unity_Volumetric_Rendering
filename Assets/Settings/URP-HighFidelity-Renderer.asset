@@ -92,10 +92,10 @@ MonoBehaviour:
     failOperation: 0
     zFailOperation: 0
   m_ShadowTransparentReceive: 1
-  m_RenderingMode: 0
+  m_RenderingMode: 1
   m_DepthPrimingMode: 0
   m_CopyDepthMode: 0
-  m_AccurateGbufferNormals: 0
+  m_AccurateGbufferNormals: 1
   m_IntermediateTextureMode: 1
 --- !u!114 &9044397619149688387
 MonoBehaviour:
@@ -115,11 +115,10 @@ MonoBehaviour:
     scattering: -0.1
     sigmaS: 0.5
     sigmaT: 0.7
-    intensity: 4.81
-    steps: 35
+    intensity: 3.2
+    steps: 25
     maxDistance: 73
     jitter: 1
-    mode: 0
     downsampling: 2
     upsampling: 2
     phaseFunction: 0
