@@ -104,7 +104,7 @@ Shader "Hidden/VolumetricLight"
                 {
                     // See slide 28 at http://www.frostbite.com/2015/08/physically-based-unified-volumetric-rendering-in-frostbite/
                     float3 S = light.color * _Intensity * _SigmaS *
-                        phaseFunction(dot(rayDirection, light.direction), _Scattering) * MainLightShadowAtten(currentPosition);
+                        phaseFunction(dot(rayDirection, -light.direction), _Scattering) * MainLightShadowAtten(currentPosition);
                     float3 Sint = (S - S * exp(-_SigmaT * stepLength)) / _SigmaT;
                     accumFog += transmittance * Sint;
                     transmittance *= exp(-_SigmaT * stepLength);

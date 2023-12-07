@@ -15,13 +15,7 @@ float MainLightShadowAtten(float3 worldPosition)
 
 float3 GetWorldPosFromUV(float2 uv)
 {
-    #if UNITY_REVERSED_Z
-        float depth = SampleSceneDepth(uv);
-    #else
-        // Adjust z to match NDC for OpenGL
-        // See https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@12.0/manual/writing-shaders-urp-reconstruct-world-position.html
-        float depth = lerp(UNITY_NEAR_CLIP_VALUE, 1, SampleSceneDepth(uv));
-    #endif
+    float depth = SampleSceneDepth(uv);
     return ComputeWorldSpacePosition(uv, depth, UNITY_MATRIX_I_VP);
 }
 

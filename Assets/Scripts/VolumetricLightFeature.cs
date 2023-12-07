@@ -26,8 +26,8 @@ public class VolumetricLightFeature : ScriptableRendererFeature
         [Range(5, 100)]
         public int steps = 10;
 
-        [Range(5, 300)]
-        public int maxDistance = 75;
+        [Range(1, 10)]
+        public int maxDistance = 5;
 
         [Range(0.5f, 3f)] 
         public float jitter = 2.5f;
