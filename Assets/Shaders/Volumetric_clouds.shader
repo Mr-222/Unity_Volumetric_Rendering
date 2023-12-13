@@ -4,7 +4,7 @@ Shader "Custom/VolumetricClouds"
     {
         _NumSteps ("Number of raymarch steps", Range(5, 100)) = 64
     	_StepSize ("Raymarch Step size", Range(0.001, 0.3)) = 0.02
-    	_DensityScale ("Density scale", Range(0.1, 1)) = 0.5
+    	_DensityScale ("Density scale", Float) = 0.5
     	_VolumeTex ("Volume texture", 3D) = "white" {}
     	_Offset ("Offset", Vector) = (0, 0, 0)
     	_NumLightSteps ("Number of light steps", Range(5, 100)) = 15
@@ -12,6 +12,7 @@ Shader "Custom/VolumetricClouds"
     	_LightAbsorb ("Light absorb",Float) = 2
     	_DarknessThreshold ("Darkness threshold", Range(0, 1)) = 0.15
     	_Transmittance ("Transmittance", Range(0, 1)) = 1
+    	_G ("Scattering coefficient", Range(-1, 1)) = 0.2
     	_Color ("Cloud color", Color) = (1, 1, 1)
     	_ShadowColor ("Shadow color", Color) = (0, 0, 0.2)
     }
@@ -35,6 +36,7 @@ Shader "Custom/VolumetricClouds"
         	HLSLPROGRAM
         
 			#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
+			#include "Helpers.hlsl"
 
 			#pragma vertex vert
 			#pragma fragment frag
@@ -53,6 +55,7 @@ Shader "Custom/VolumetricClouds"
 			float _Transmittance;
 			float3 _Color;
 			float3 _ShadowColor;
+			float _G;
 	        CBUFFER_END;
 
 	        struct Attributes
@@ -81,41 +84,32 @@ Shader "Custom/VolumetricClouds"
 	        void raymarch( float3 rayOrigin, float3 rayDirection, float numSteps, float stepSize,
                      float densityScale, Texture3D volumeTex, SamplerState volumeSampler,
                      float3 offset, float numLightSteps, float lightStepSize, float3 lightDir,
-                     float lightAbsorb, float darknessThreshold, float transmittance, out float3 result )
+                     float lightAbsorb, float darknessThreshold, out float3 result )
 			{
-	        	float density = 0;
-	        	float finalLight = 0;
+	        	float color = 0;
+				float transmittance = 1;
+	        	rayOrigin += offset;
 
-	        	for (int i = 0; i < numSteps; ++i)
-	        	{
-	        		rayOrigin += rayDirection * stepSize;
-	        		float3 samplePos = rayOrigin + offset;
-	        		float sampledDensity = SAMPLE_TEXTURE3D(volumeTex, volumeSampler, samplePos).r;
-	        		density += sampledDensity * densityScale;
+	        	// Raymarch
+				for(int i = 0; i < numSteps; i++)
+				{
+					float sampledDensity = SAMPLE_TEXTURE3D(volumeTex, volumeSampler, rayOrigin).r * densityScale;
+					transmittance *= exp(-sampledDensity * stepSize);
 
-	        		// Light loop
-	        		float3 lightRayOrigin = samplePos;
-	        		float lightAccumulation = 0;
-	        		for (int j = 0; j < numLightSteps; ++j)
-	        		{
-	        			lightRayOrigin -= lightDir * lightStepSize;
-	        			float lightDensity = SAMPLE_TEXTURE3D(volumeTex, volumeSampler, lightRayOrigin).r;
-	        			// Higher density, less light reach to the camera
-	        			lightAccumulation += lightDensity;
-	        		}
-	        		float lightTransmission = exp(-lightAccumulation);
-	        		// Shadow tends to the darkness threshold as lightAccumulation rises
-	        		float shadow = darknessThreshold + lightTransmission * (1.0 - darknessThreshold);
+					// Lightmarch
+					float totalDensity = 0;
+					for (int step = 0; step < numLightSteps; ++step)
+					{
+						float3 position = rayOrigin + lightDir * lightStepSize;
+						totalDensity += SAMPLE_TEXTURE3D(volumeTex, volumeSampler, position).r * lightStepSize * densityScale;
+					}
+					float lightTransmittance = exp(-totalDensity * lightAbsorb);
+					color += (darknessThreshold + lightTransmittance * (1 - darknessThreshold)) * transmittance;
 
-	        		finalLight += density * transmittance * shadow;
+					rayOrigin += rayDirection * stepSize;
+				}
 
-	        		// Initially a param its value is updated at each step by lightAbsorb, this sets light lost by scattering
-	        		transmittance *= exp(-density * lightAbsorb);
-	        	}
-
-	        	float transmission = exp(-density);
-
-	        	result = float3(finalLight, transmission, transmittance);
+				result = float3(color, transmittance, 0);
 			}
 			
 	        float4 frag(Varyings input) : SV_Target
@@ -123,7 +117,7 @@ Shader "Custom/VolumetricClouds"
 	            float3 cameraPos = _WorldSpaceCameraPos;
         		cameraPos = TransformWorldToObject(cameraPos);
         		const float3 rayDirection = normalize(input.positionOS - cameraPos);
-        		const float3 rayOrigin = input.positionOS;
+        		const float3 rayOrigin = cameraPos;
         		float3 result = 0;
 				Light light = GetMainLight();
 	        	float3 lightDir = TransformWorldToObject(-light.direction);
@@ -131,9 +125,12 @@ Shader "Custom/VolumetricClouds"
         		raymarch(rayOrigin, rayDirection, _NumSteps, _StepSize,
         			_DensityScale, _VolumeTex, sampler_VolumeTex,_Offset,
         			_NumLightSteps, _LightStepSize, lightDir,
-        			_LightAbsorb, _DarknessThreshold, _Transmittance, result);
+        			_LightAbsorb, _DarknessThreshold, result);
 
 				float3 color = lerp(_ShadowColor, _Color, result.r);
+	        	float LoV = dot(lightDir, -rayDirection);
+	        	float dualLobPhase = lerp(HenyeyGreenStein(LoV, 0.8), HenyeyGreenStein(LoV, -0.5), 0.5);
+	        	color *= dualLobPhase;
 	        	
         		return float4(color, 1.0 - result.g);
 	        }
