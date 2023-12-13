@@ -66,27 +66,14 @@ Shader "Hidden/VolumetricLight"
                 return output;
             }
 
-            float HenyeyGreenStein(float LoV, float g)
-            {
-                float result = 1.0f - g * g;
-                result /= 4.0f * PI * pow(1.0f + g * g - 2.0f * g * LoV, 1.5f);
-                return result;
-            }
-
-            float Schlick(float LoV, float k)
-            {
-                return (1.0f - k * k) / (4.0 * PI * pow(1.0f + k * LoV, 2.0f));
-            }
-
             float phaseFunction(float LoV, float g)
             {
                 #if defined(_HENYEY_GREENSTEIN)
                     return HenyeyGreenStein(LoV, g);
-                #elif defined(_SCHLICK)
+                #else
                     float k = 1.55f * g - 0.55f * g * g * g;
                     return Schlick(LoV, k);
                 #endif
-                    return HenyeyGreenStein(LoV, g);
             }
 
             float3 rayMarchMainLight(float3 startPosition, float3 step, float2 uv)

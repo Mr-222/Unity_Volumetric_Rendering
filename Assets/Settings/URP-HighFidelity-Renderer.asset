@@ -109,9 +109,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8eeac379c09227f4180bbda02fd5d7a7, type: 3}
   m_Name: Volumetric Light
   m_EditorClassIdentifier: 
-  m_Active: 1
+  m_Active: 0
   settings:
-    material: {fileID: 2100000, guid: e8fc82e49bd504b46bd531d2308b66d3, type: 2}
+    material: {fileID: 2100000, guid: 2f6fca190ff224743a7e0ef52b66f98e, type: 2}
     scattering: -0.18
     sigmaS: 0.56
     sigmaT: 0.74
