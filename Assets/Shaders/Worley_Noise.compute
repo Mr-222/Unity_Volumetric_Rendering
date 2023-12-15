@@ -1,0 +1,58 @@
+#pragma kernel CSWorley2D
+
+#pragma multi_compile _ _Invert
+
+int _Resolution;
+int _CellResolution;
+StructuredBuffer<float2> _FeaturePoints;
+RWTexture2D<float4> _NoiseTex;
+
+float2 noise2x2(float2 p)
+{
+    float x = dot(p, float2(123.4, 234.5));
+    float y = dot(p, float2(345.6, 456.7));
+    float2 noise = float2(x, y);
+    noise = sin(noise);
+    noise = noise * 43758.5453;
+    noise = frac(noise);
+
+    return noise;
+}
+
+float3 worley2D(StructuredBuffer<float2> points, int texResolution, int numCellPerAxis, float2 pixelIndex)
+{
+    float2 uv = pixelIndex / texResolution;
+    uv *= numCellPerAxis;
+    float2 currentCellId = floor(uv);
+    float2 currentCellCoord = frac(uv);
+    currentCellCoord -= 0.5;
+
+    float minDistFromPixel =  1000000.0;
+    for (float i = -1.0; i <= 1.0; ++i)
+    {
+        for (float j = -1.0; j <= 1.0; ++j)
+        {
+            float2 adjCellCoords = float2(i, j);
+            //float2 noise = noise2x2(currentCellId + adjCellCoords);
+            float2 noise = _FeaturePoints[(int)currentCellId.x + i + ((int)currentCellId.y + j)* numCellPerAxis];
+            float2 pointOnAdjCell = adjCellCoords + noise;
+
+            float dist = distance(currentCellCoord, pointOnAdjCell);
+            minDistFromPixel = min(dist, minDistFromPixel);
+        }
+    }
+
+    #ifdef _Invert
+        float color = 1.0 - minDistFromPixel;
+    #else
+        float color = minDistFromPixel;
+    #endif
+    
+    return float3(color, color, color);
+}
+
+[numthreads(8,8,1)]
+void CSWorley2D (uint3 id : SV_DispatchThreadID)
+{
+    _NoiseTex[id.xy] = float4(worley2D(_FeaturePoints, _Resolution, _CellResolution, id.xy), 1.0);
+}
