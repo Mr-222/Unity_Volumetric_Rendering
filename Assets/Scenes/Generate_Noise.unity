@@ -220,7 +220,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   texResolution: 512
-  cellResolution: 4
+  cellResolution: 8
   invert: 1
   fileName: WorleyNoise2D
   shader: {fileID: 7200000, guid: 9ea12396d0b489d48a7b42965898f66c, type: 3}
@@ -392,7 +392,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainTex:
-        m_Texture: {fileID: 0}
+        m_Texture: {fileID: 2800000, guid: a0fb559e0674b684786d24436983b9a5, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MetallicGlossMap:
@@ -736,7 +736,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 58cbd63db7222fe47ba40676bf118c7a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  texResolution: 128
+  texResolution: 256
   cellResolution: 8
   invert: 1
   fileName: WorleyNoise2D

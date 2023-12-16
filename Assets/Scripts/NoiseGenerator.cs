@@ -16,11 +16,6 @@ public class NoiseGenerator : MonoBehaviour
     public ComputeShader shader;
     
     private ComputeBuffer buffer;
-    
-    private struct Byte4
-    {
-        public byte r, g, b, a;
-    }
 
     public void Generate2D()
     {
@@ -115,7 +110,7 @@ public class NoiseGenerator : MonoBehaviour
         shader.SetInt("_Resolution", texResolution);
         shader.SetInt("_CellResolution", cellResolution);
         
-        RenderTexture noise = new RenderTexture(texResolution, texResolution, 0, RenderTextureFormat.Default)
+        RenderTexture noise = new RenderTexture(texResolution, texResolution, 0, RenderTextureFormat.R8)
         {
             enableRandomWrite = true,
             dimension = TextureDimension.Tex3D,
@@ -151,7 +146,7 @@ public class NoiseGenerator : MonoBehaviour
     {
         int width = rt3D.width, height = rt3D.height, depth = rt3D.volumeDepth;
         // Change if format is not 8 bits (i was using R8_UNorm) (create a struct with 4 bytes etc)
-        var a = new NativeArray<Byte4>(width * height * depth, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+        var a = new NativeArray<byte>(width * height * depth, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
         AsyncGPUReadback.RequestIntoNativeArray(ref a, rt3D, 0, (_) =>
         {
             Texture3D output = new Texture3D(width, height, depth, rt3D.graphicsFormat, TextureCreationFlags.None);
