@@ -9,7 +9,9 @@ public class NoiseGeneratorEditor : Editor
         DrawDefaultInspector();
 
         NoiseGenerator myScript = (NoiseGenerator)target;
-        if (GUILayout.Button("Generate"))
-            myScript.Generate();
+        if (GUILayout.Button("Generate 2D"))
+            myScript.Generate2D();
+        if (GUILayout.Button("Generate 3D"))
+            myScript.Generate3D();
     }
 }
