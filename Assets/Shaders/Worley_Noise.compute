@@ -1,10 +1,12 @@
 #pragma kernel CSWorley2D
 #pragma kernel CSWorley3D
+#pragma kernel CSWorleyFBM
 
 #pragma multi_compile _ _Invert
 
 int _Resolution;
 int _CellResolution;
+int _NumOctaves;
 StructuredBuffer<float2> _FeaturePoints2D;
 StructuredBuffer<float3> _FeaturePoints3D;
 RWTexture2D<float4> _NoiseTex2D;
@@ -30,7 +32,7 @@ float worley2D (StructuredBuffer<float2> points, int texResolution, int numCellP
     float2 currentCellCoord = frac(uv);
     currentCellCoord -= 0.5;
 
-    float minDistFromPixel =  1000000.0;
+    float minDistFromPixel = 1000000.0;
     for (float i = -1.0; i <= 1.0; ++i)
     {
         for (float j = -1.0; j <= 1.0; ++j)
@@ -64,7 +66,7 @@ float worley3D (StructuredBuffer<float3> points, int texResolution, int numCellP
     float3 currentCellCoord = frac(uvz);
     currentCellCoord -= 0.5;
 
-    float minDistFromPixel =  1000000.0;
+    float minDistFromPixel = 1000000.0;
     for (float i = -1.0; i <= 1.0; ++i)
     {
         for (float j = -1.0; j <= 1.0; ++j)
@@ -99,6 +101,58 @@ float worley3D (StructuredBuffer<float3> points, int texResolution, int numCellP
     return color;
 }
 
+float worley3DFBM (StructuredBuffer<float3> points, int texResolution, int numCellPerAxis, float3 pixelIndex)
+{
+    float noise = 0.0;
+    float amplitude = 1.0;
+    for (int octave = 0; octave < _NumOctaves; ++octave)
+    {
+        float3 uvz = pixelIndex / texResolution;
+        uvz *= numCellPerAxis;
+        float3 currentCellId = floor(uvz);
+        float3 currentCellCoord = frac(uvz);
+        currentCellCoord -= 0.5;
+        
+        float minDistFromPixel = 1000000.0;
+        for (float i = -1.0; i <= 1.0; ++i)
+        {
+            for (float j = -1.0; j <= 1.0; ++j)
+            {
+                for (float z = -1.0; z <= 1.0; ++z)
+                {
+                    float3 adjCellCoords = float3(i, j, z);
+                    if (currentCellId.x + i < 0 || currentCellId.x + i >= numCellPerAxis ||
+                        currentCellId.y + j < 0 || currentCellId.y + j >= numCellPerAxis ||
+                        currentCellId.z + z < 0 || currentCellId.z + z >= numCellPerAxis)
+                        continue;
+                
+                    float3 noise = points[
+                        (int)currentCellId.x + i +
+                        ((int)currentCellId.y + j) * numCellPerAxis +
+                        ((int)currentCellId.z + z) * numCellPerAxis * numCellPerAxis
+                        ];
+                    float3 pointOnAdjCell = adjCellCoords + noise;
+
+                    float dist = distance(currentCellCoord, pointOnAdjCell);
+                    minDistFromPixel = min(dist, minDistFromPixel);
+                }
+            }
+        }
+        #ifdef _Invert
+            noise += amplitude * (1.0 - minDistFromPixel);
+        #else
+            noise += amplitude * minDistFromPixel;
+        #endif
+
+        // Double frequency
+        numCellPerAxis *= 2;
+        // Half amplitude
+        amplitude *= 0.5;
+    }
+    
+    return noise;
+}
+
 [numthreads(8,8,1)]
 void CSWorley2D (uint3 id : SV_DispatchThreadID)
 {
@@ -110,4 +164,10 @@ void CSWorley2D (uint3 id : SV_DispatchThreadID)
 void CSWorley3D (uint3 id : SV_DispatchThreadID)
 {
     _NoiseTex3D[id.xyz] = worley3D(_FeaturePoints3D, _Resolution, _CellResolution, id.xyz);
+}
+
+[numthreads(8,8,8)]
+void CSWorleyFBM (uint3 id : SV_DispatchThreadID)
+{
+    _NoiseTex3D[id.xyz] = worley3DFBM(_FeaturePoints3D, _Resolution, _CellResolution, id.xyz);
 }

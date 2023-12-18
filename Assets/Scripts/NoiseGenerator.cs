@@ -1,5 +1,6 @@
 using System;
 using Unity.Collections;
+using Unity.Mathematics;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
@@ -9,8 +10,9 @@ using Random = UnityEngine.Random;
 [ExecuteAlways]
 public class NoiseGenerator : MonoBehaviour
 {
-    public int texResolution = 256;
+    public int texResolution = 128;
     public int cellResolution = 4;
+    [Range(1, 5)]public int numOctaves = 4;
     public bool invert = false;
     public string fileName = "WorleyNoise2D";
     public ComputeShader shader;
@@ -35,6 +37,15 @@ public class NoiseGenerator : MonoBehaviour
         buffer.Release();
     }
 
+    public void Generate3DFBM()
+    {
+        int kernelHandle = shader.FindKernel("CSWorleyFBM");
+        ComputeBuffer buffer = CreateWorleyPointsBuffer3D(cellResolution, "_FeaturePoints3D", kernelHandle);
+        RenderTexture noiseTex = Dispatch3D(kernelHandle);
+        SaveRT3DToTexture3DAsset(noiseTex, fileName);
+        buffer.Release();
+    }
+
     ComputeBuffer CreateWorleyPointsBuffer2D(int numCellsPerAxis, string bufferName, int kernel)
     {
         var points = new Vector3[numCellsPerAxis * numCellsPerAxis];
@@ -53,6 +64,7 @@ public class NoiseGenerator : MonoBehaviour
 
     ComputeBuffer CreateWorleyPointsBuffer3D(int numCellsPerAxis, string bufferName, int kernel)
     {
+        numCellsPerAxis = numCellsPerAxis * (int)Mathf.Pow(2, numOctaves - 1);
         var points = new Vector3[numCellsPerAxis * numCellsPerAxis * numCellsPerAxis];
         for (int x = 0; x < numCellsPerAxis; x++)
         {
@@ -109,6 +121,7 @@ public class NoiseGenerator : MonoBehaviour
             shader.DisableKeyword("_Invert");
         shader.SetInt("_Resolution", texResolution);
         shader.SetInt("_CellResolution", cellResolution);
+        shader.SetInt("_NumOctaves", numOctaves);
         
         RenderTexture noise = new RenderTexture(texResolution, texResolution, 0, RenderTextureFormat.R8)
         {
@@ -119,7 +132,7 @@ public class NoiseGenerator : MonoBehaviour
             filterMode = FilterMode.Bilinear
         };
         noise.Create();
-        shader.SetTexture(kernel, "_NoiseTex3D", noise);
+        shader.SetTexture(kernel, "_NoiseTex3D", noise);    
         
         shader.Dispatch(kernel, texResolution / 8, texResolution / 8, texResolution / 8);
 

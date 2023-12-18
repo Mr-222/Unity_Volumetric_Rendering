@@ -82,7 +82,7 @@ Shader "Unlit/VolumeShader"
                     // Accumulate color only within unit cube bounds
                     if(max(abs(samplePosition.x), max(abs(samplePosition.y), abs(samplePosition.z))) < 0.5f + EPSILON)
                     {
-                        float4 sampledColor = float4(tex3D(_MainTex, samplePosition + float3(0.5f, 0.5f, 0.5f)).rrr, 1.0);
+                        float4 sampledColor = tex3D(_MainTex, samplePosition + float3(0.5f, 0.5f, 0.5f));
                         sampledColor.a *= _Alpha;
                         color = BlendUnder(color, sampledColor);
                         samplePosition += rayDirection * _StepSize;

@@ -13,5 +13,7 @@ public class NoiseGeneratorEditor : Editor
             myScript.Generate2D();
         if (GUILayout.Button("Generate 3D"))
             myScript.Generate3D();
+        if (GUILayout.Button("Generate 3D FBM"))
+            myScript.Generate3DFBM();
     }
 }
