@@ -79,12 +79,12 @@ float worley3D (StructuredBuffer<float3> points, int texResolution, int numCellP
                     currentCellId.z + z < 0 || currentCellId.z + z >= numCellPerAxis)
                     continue;
                 
-                float3 noise = points[
+                float3 position = points[
                     (int)currentCellId.x + i +
                     ((int)currentCellId.y + j) * numCellPerAxis +
                     ((int)currentCellId.z + z) * numCellPerAxis * numCellPerAxis
                     ];
-                float3 pointOnAdjCell = adjCellCoords + noise;
+                float3 pointOnAdjCell = adjCellCoords + position;
 
                 float dist = distance(currentCellCoord, pointOnAdjCell);
                 minDistFromPixel = min(dist, minDistFromPixel);
@@ -93,12 +93,12 @@ float worley3D (StructuredBuffer<float3> points, int texResolution, int numCellP
     }
 
     #ifdef _Invert
-        float color = 1.0 - minDistFromPixel;
+        float noise = 1.0 - minDistFromPixel;
     #else
-        float color = minDistFromPixel;
+        float noise = minDistFromPixel;
     #endif
     
-    return color;
+    return noise;
 }
 
 float worley3DFBM (StructuredBuffer<float3> points, int texResolution, int numCellPerAxis, float3 pixelIndex)
@@ -126,12 +126,12 @@ float worley3DFBM (StructuredBuffer<float3> points, int texResolution, int numCe
                         currentCellId.z + z < 0 || currentCellId.z + z >= numCellPerAxis)
                         continue;
                 
-                    float3 noise = points[
+                    float3 position = points[
                         (int)currentCellId.x + i +
                         ((int)currentCellId.y + j) * numCellPerAxis +
                         ((int)currentCellId.z + z) * numCellPerAxis * numCellPerAxis
                         ];
-                    float3 pointOnAdjCell = adjCellCoords + noise;
+                    float3 pointOnAdjCell = adjCellCoords + position;
 
                     float dist = distance(currentCellCoord, pointOnAdjCell);
                     minDistFromPixel = min(dist, minDistFromPixel);
