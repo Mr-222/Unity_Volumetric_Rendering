@@ -12,18 +12,6 @@ StructuredBuffer<float3> _FeaturePoints3D;
 RWTexture2D<float4> _NoiseTex2D;
 RWTexture3D<float> _NoiseTex3D;
 
-float2 noise2x2 (float2 p)
-{
-    float x = dot(p, float2(123.4, 234.5));
-    float y = dot(p, float2(345.6, 456.7));
-    float2 noise = float2(x, y);
-    noise = sin(noise);
-    noise = noise * 43758.5453;
-    noise = frac(noise);
-
-    return noise;
-}
-
 float worley2D (StructuredBuffer<float2> points, int texResolution, int numCellPerAxis, float2 pixelIndex)
 {
     float2 uv = pixelIndex / texResolution;
@@ -41,8 +29,8 @@ float worley2D (StructuredBuffer<float2> points, int texResolution, int numCellP
             //float2 noise = noise2x2(currentCellId + adjCellCoords);
             if (currentCellId.x + i < 0 || currentCellId.x + i >= numCellPerAxis || currentCellId.y + j < 0 || currentCellId.y + j >= numCellPerAxis)
                 continue;
-            float2 noise = points[(int)currentCellId.x + i + ((int)currentCellId.y + j)* numCellPerAxis];
-            float2 pointOnAdjCell = adjCellCoords + noise;
+            float2 position = points[(int)currentCellId.x + i + ((int)currentCellId.y + j)* numCellPerAxis];
+            float2 pointOnAdjCell = adjCellCoords + position;
 
             float dist = distance(currentCellCoord, pointOnAdjCell);
             minDistFromPixel = min(dist, minDistFromPixel);
@@ -50,12 +38,12 @@ float worley2D (StructuredBuffer<float2> points, int texResolution, int numCellP
     }
 
     #ifdef _Invert
-        float color = 1.0 - minDistFromPixel;
+        float noise = 1.0 - minDistFromPixel;
     #else
-        float color = minDistFromPixel;
+        float noise = minDistFromPixel;
     #endif
     
-    return color;
+    return noise;
 }
 
 float worley3D (StructuredBuffer<float3> points, int texResolution, int numCellPerAxis, float3 pixelIndex)

@@ -9,11 +9,13 @@ public class NoiseGeneratorEditor : Editor
         DrawDefaultInspector();
 
         NoiseGenerator myScript = (NoiseGenerator)target;
-        if (GUILayout.Button("Generate 2D"))
-            myScript.Generate2D();
-        if (GUILayout.Button("Generate 3D"))
-            myScript.Generate3D();
-        if (GUILayout.Button("Generate 3D FBM"))
-            myScript.Generate3DFBM();
+        if (GUILayout.Button("Generate Worley 2D"))
+            myScript.GenerateWorley2D();
+        if (GUILayout.Button("Generate Worley 3D"))
+            myScript.GenerateWorley3D();
+        if (GUILayout.Button("Generate Worley 3D FBM"))
+            myScript.GenerateWorley3DFBM();
+        if (GUILayout.Button("Generate Perlin 2D"))
+            myScript.GeneratePerlin2D();
     }
 }

@@ -1,0 +1,72 @@
+#pragma kernel CSPerlin2D
+
+#pragma multi_compile _ _Invert
+
+int _CellResolution;
+int _Resolution;
+float _RandomVal;
+RWTexture2D<float4> _NoiseTex2D;
+
+float2 randomVector(float2 p)
+{
+    p += 0.01;
+    float x = dot(p, float2(123.4, 234.5));
+    float y = dot(p, float2(234.5, 345.6));
+    float2 gradient = float2(x, y);
+    gradient = sin(gradient);
+    gradient = gradient * 43758.5453;
+    gradient = sin(gradient + _RandomVal);
+
+    return gradient;
+}
+
+float PerlinNoiseLerp(float l, float r, float t) {
+    t = ((6 * t - 15) * t + 10) * t * t * t;
+    return lerp(l, r, t);
+}
+
+float4 perlin2D (int texResolution, int numCellPerAxis, float2 pixelIndex)
+{
+    float2 uv = pixelIndex / texResolution;
+    uv *= numCellPerAxis;
+    float2 gridId = floor(uv);
+    float2 gridUV = frac(uv);
+
+    float2 bl = gridId + float2(0.0, 0.0);
+    float2 br = gridId + float2(1.0, 0.0);
+    float2 tl = gridId + float2(0.0, 1.0);
+    float2 tr = gridId + float2(1.0, 1.0);
+
+    float2 gradBl = randomVector(bl);
+    float2 gradBr = randomVector(br);
+    float2 gradTl = randomVector(tl);
+    float2 gradTr = randomVector(tr);
+
+    float2 distFromPixelToBl = gridUV - float2(0.0, 0.0);
+    float2 distFromPixelToBr = gridUV - float2(1.0, 0.0);
+    float2 distFromPixelToTl = gridUV - float2(0.0, 1.0);
+    float2 distFromPixelToTr = gridUV - float2(1.0, 1.0);
+
+    float dotBl = dot(gradBl, distFromPixelToBl);
+    float dotBr = dot(gradBr, distFromPixelToBr);
+    float dotTl = dot(gradTl, distFromPixelToTl);
+    float dotTr = dot(gradTr, distFromPixelToTr);
+    
+    float b = PerlinNoiseLerp(dotBl, dotBr, gridUV.x);
+    float t = PerlinNoiseLerp(dotTl, dotTr, gridUV.x);
+    float noise = PerlinNoiseLerp(b, t, gridUV.y);
+    noise = (noise + 1.0) / 2.0;
+
+    #ifdef _Invert
+        noise = 1.0 - noise;
+    #endif
+    
+    return float4(noise, noise, noise, 1.0);
+}
+
+[numthreads(8,8,1)]
+void CSPerlin2D (uint3 id : SV_DispatchThreadID)
+{
+    float4 color = perlin2D(_Resolution, _CellResolution, id.xy);
+    _NoiseTex2D[id.xy] = color;
+}

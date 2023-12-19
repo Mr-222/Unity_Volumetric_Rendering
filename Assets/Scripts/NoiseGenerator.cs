@@ -1,6 +1,5 @@
 using System;
 using Unity.Collections;
-using Unity.Mathematics;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
@@ -15,37 +14,47 @@ public class NoiseGenerator : MonoBehaviour
     [Range(1, 5)]public int numOctaves = 4;
     public bool invert = false;
     public string fileName = "WorleyNoise2D";
-    public ComputeShader shader;
+    public ComputeShader worleyShader;
+    public ComputeShader perlinShader;
     
     private ComputeBuffer buffer;
 
-    public void Generate2D()
+    public void GenerateWorley2D()
     {
-        int kernelHandle = shader.FindKernel("CSWorley2D");
+        int kernelHandle = worleyShader.FindKernel("CSWorley2D");
         ComputeBuffer buffer = CreateWorleyPointsBuffer2D(cellResolution, "_FeaturePoints2D", kernelHandle);
-        RenderTexture noiseTex = Dispatch2D(kernelHandle);
+        RenderTexture noiseTex = Dispatch2D(worleyShader, kernelHandle);
         saveToPNG(noiseTex, fileName);
         buffer.Release();
     }
 
-    public void Generate3D()
+    public void GenerateWorley3D()
     {
-        int kernelHandle = shader.FindKernel("CSWorley3D");
+        int kernelHandle = worleyShader.FindKernel("CSWorley3D");
         ComputeBuffer buffer = CreateWorleyPointsBuffer3D(cellResolution, "_FeaturePoints3D", kernelHandle);
-        RenderTexture noiseTex = Dispatch3D(kernelHandle);
+        RenderTexture noiseTex = Dispatch3D(worleyShader, kernelHandle);
         SaveRT3DToTexture3DAsset(noiseTex, fileName);
         buffer.Release();
     }
 
-    public void Generate3DFBM()
+    public void GenerateWorley3DFBM()
     {
-        int kernelHandle = shader.FindKernel("CSWorleyFBM");
+        int kernelHandle = worleyShader.FindKernel("CSWorleyFBM");
         ComputeBuffer buffer = CreateWorleyPointsBuffer3D(cellResolution, "_FeaturePoints3D", kernelHandle);
-        RenderTexture noiseTex = Dispatch3D(kernelHandle);
+        RenderTexture noiseTex = Dispatch3D(worleyShader, kernelHandle);
         SaveRT3DToTexture3DAsset(noiseTex, fileName);
         buffer.Release();
     }
-
+    
+    public void GeneratePerlin2D()
+    {
+        int kernelHandle = perlinShader.FindKernel("CSPerlin2D");
+        //ComputeBuffer buffer = CreateWorleyPointsBuffer2D(cellResolution, "_FeaturePoints2D", kernelHandle);
+        RenderTexture noiseTex = Dispatch2D(perlinShader, kernelHandle);
+        saveToPNG(noiseTex, fileName);
+        //buffer.Release();
+    }
+    
     ComputeBuffer CreateWorleyPointsBuffer2D(int numCellsPerAxis, string bufferName, int kernel)
     {
         var points = new Vector3[numCellsPerAxis * numCellsPerAxis];
@@ -59,7 +68,7 @@ public class NoiseGenerator : MonoBehaviour
             }
         }
         
-        return CreateBuffer(points, 3 * sizeof(float), bufferName, kernel);
+        return CreateBuffer(points, 3 * sizeof(float), bufferName, worleyShader, kernel);
     }
 
     ComputeBuffer CreateWorleyPointsBuffer3D(int numCellsPerAxis, string bufferName, int kernel)
@@ -79,10 +88,10 @@ public class NoiseGenerator : MonoBehaviour
             }
         }
         
-        return CreateBuffer(points, 3 * sizeof(float), bufferName, kernel);
+        return CreateBuffer(points, 3 * sizeof(float), bufferName, worleyShader, kernel);
     }
 
-    ComputeBuffer CreateBuffer(Array data, int stride, string bufferName, int kernel)
+    ComputeBuffer CreateBuffer(Array data, int stride, string bufferName, ComputeShader shader, int kernel)
     {
         buffer = new ComputeBuffer(data.Length, stride, ComputeBufferType.Raw);
         buffer.SetData(data);
@@ -91,7 +100,7 @@ public class NoiseGenerator : MonoBehaviour
         return buffer;
     }
 
-    RenderTexture Dispatch2D(int kernel)
+    RenderTexture Dispatch2D(ComputeShader shader, int kernel)
     {
         if (invert)
             shader.EnableKeyword("_Invert");
@@ -99,6 +108,7 @@ public class NoiseGenerator : MonoBehaviour
             shader.DisableKeyword("_Invert");
         shader.SetInt("_Resolution", texResolution);
         shader.SetInt("_CellResolution", cellResolution);
+        shader.SetFloat("_RandomVal", Random.Range(0f, 100f));
         
         RenderTexture noise = RenderTexture.GetTemporary(texResolution, texResolution, 0, RenderTextureFormat.Default);
         noise.enableRandomWrite = true;
@@ -113,7 +123,7 @@ public class NoiseGenerator : MonoBehaviour
         return noise;
     }
     
-    RenderTexture Dispatch3D(int kernel)
+    RenderTexture Dispatch3D(ComputeShader shader, int kernel)
     {
         if (invert)
             shader.EnableKeyword("_Invert");
