@@ -50,7 +50,7 @@ public class NoiseGenerator : MonoBehaviour
     {
         int kernelHandle = perlinShader.FindKernel("CSPerlin2D");
         RenderTexture noiseTex = Dispatch2D(perlinShader, kernelHandle);
-        //saveToPNG(noiseTex, fileName);
+        saveToPNG(noiseTex, fileName);
     }
 
     public void GeneratePerlin3D()
