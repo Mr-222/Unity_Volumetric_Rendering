@@ -600,10 +600,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   texResolution: 128
-  cellResolution: 4
+  cellResolution: 16
   numOctaves: 4
   invert: 1
-  fileName: WorleyFBM
+  fileName: Perlin3D
   worleyShader: {fileID: 7200000, guid: 9ea12396d0b489d48a7b42965898f66c, type: 3}
   perlinShader: {fileID: 7200000, guid: bb9ed995f27941c48d5fdaceceb61837, type: 3}
 --- !u!1660057539 &9223372036854775807

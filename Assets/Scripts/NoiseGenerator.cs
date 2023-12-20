@@ -49,10 +49,15 @@ public class NoiseGenerator : MonoBehaviour
     public void GeneratePerlin2D()
     {
         int kernelHandle = perlinShader.FindKernel("CSPerlin2D");
-        //ComputeBuffer buffer = CreateWorleyPointsBuffer2D(cellResolution, "_FeaturePoints2D", kernelHandle);
         RenderTexture noiseTex = Dispatch2D(perlinShader, kernelHandle);
         saveToPNG(noiseTex, fileName);
-        //buffer.Release();
+    }
+
+    public void GeneratePerlin3D()
+    {
+        int kernelHandle = perlinShader.FindKernel("CSPerlin3D");
+        RenderTexture noiseTex = Dispatch3D(perlinShader, kernelHandle);
+        SaveRT3DToTexture3DAsset(noiseTex, fileName);
     }
     
     ComputeBuffer CreateWorleyPointsBuffer2D(int numCellsPerAxis, string bufferName, int kernel)
@@ -132,6 +137,7 @@ public class NoiseGenerator : MonoBehaviour
         shader.SetInt("_Resolution", texResolution);
         shader.SetInt("_CellResolution", cellResolution);
         shader.SetInt("_NumOctaves", numOctaves);
+        shader.SetFloat("_RandomVal", Random.Range(0f, 100f));
         
         RenderTexture noise = new RenderTexture(texResolution, texResolution, 0, RenderTextureFormat.R8)
         {
