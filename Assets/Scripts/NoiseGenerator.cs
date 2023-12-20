@@ -37,7 +37,7 @@ public class NoiseGenerator : MonoBehaviour
         buffer.Release();
     }
 
-    public void GenerateWorley3DFBM()
+    public void GenerateWorley3Dfbm()
     {
         int kernelHandle = worleyShader.FindKernel("CSWorleyFBM");
         ComputeBuffer buffer = CreateWorleyPointsBuffer3D(cellResolution, "_FeaturePoints3D", kernelHandle);
@@ -50,12 +50,19 @@ public class NoiseGenerator : MonoBehaviour
     {
         int kernelHandle = perlinShader.FindKernel("CSPerlin2D");
         RenderTexture noiseTex = Dispatch2D(perlinShader, kernelHandle);
-        saveToPNG(noiseTex, fileName);
+        //saveToPNG(noiseTex, fileName);
     }
 
     public void GeneratePerlin3D()
     {
         int kernelHandle = perlinShader.FindKernel("CSPerlin3D");
+        RenderTexture noiseTex = Dispatch3D(perlinShader, kernelHandle);
+        SaveRT3DToTexture3DAsset(noiseTex, fileName);
+    }
+
+    public void GeneratePerlin3Dfbm()
+    {
+        int kernelHandle = perlinShader.FindKernel("CSPerlinFBM");
         RenderTexture noiseTex = Dispatch3D(perlinShader, kernelHandle);
         SaveRT3DToTexture3DAsset(noiseTex, fileName);
     }

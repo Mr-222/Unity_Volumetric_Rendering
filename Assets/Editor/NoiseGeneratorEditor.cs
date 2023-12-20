@@ -15,7 +15,7 @@ public class NoiseGeneratorEditor : Editor
         if (GUILayout.Button("Generate Worley 3D"))
             myScript.GenerateWorley3D();
         if (GUILayout.Button("Generate Worley 3D FBM"))
-            myScript.GenerateWorley3DFBM();
+            myScript.GenerateWorley3Dfbm();
         
         GUILayout.Space(15);
         
@@ -23,5 +23,7 @@ public class NoiseGeneratorEditor : Editor
             myScript.GeneratePerlin2D();
         if (GUILayout.Button("Generate Perlin 3D"))
             myScript.GeneratePerlin3D();
+        if (GUILayout.Button("Generate Perlin 3D FBM"))
+            myScript.GeneratePerlin3Dfbm();
     }
 }

@@ -89,11 +89,11 @@ float worley3D (StructuredBuffer<float3> points, int texResolution, int numCellP
     return noise;
 }
 
-float worley3DFBM (StructuredBuffer<float3> points, int texResolution, int numCellPerAxis, float3 pixelIndex)
+float worley3DFBM (StructuredBuffer<float3> points, int texResolution, int numCellPerAxis, int numOctaves, float3 pixelIndex)
 {
     float noise = 0.0;
     float amplitude = 1.0;
-    for (int octave = 0; octave < _NumOctaves; ++octave)
+    for (int octave = 0; octave < numOctaves; ++octave)
     {
         float3 uvz = pixelIndex / texResolution;
         uvz *= numCellPerAxis;
@@ -157,5 +157,5 @@ void CSWorley3D (uint3 id : SV_DispatchThreadID)
 [numthreads(8,8,8)]
 void CSWorleyFBM (uint3 id : SV_DispatchThreadID)
 {
-    _NoiseTex3D[id.xyz] = worley3DFBM(_FeaturePoints3D, _Resolution, _CellResolution, id.xyz);
+    _NoiseTex3D[id.xyz] = worley3DFBM(_FeaturePoints3D, _Resolution, _CellResolution, _NumOctaves, id.xyz);
 }

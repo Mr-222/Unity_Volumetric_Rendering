@@ -1,10 +1,12 @@
 #pragma kernel CSPerlin2D
 #pragma kernel CSPerlin3D
+#pragma kernel CSPerlinFBM
 
 #pragma multi_compile _ _Invert
 
 int _CellResolution;
 int _Resolution;
+int _NumOctaves;
 float _RandomVal;
 RWTexture2D<float4> _NoiseTex2D;
 RWTexture3D<float> _NoiseTex3D;
@@ -82,6 +84,56 @@ float4 perlin2D (int texResolution, int numCellPerAxis, float2 pixelIndex)
     return float4(noise, noise, noise, 1.0);
 }
 
+float4 perlin2DFBM (int texResolution, int numCellPerAxis, float2 pixelIndex)
+{
+    float color = 0.0;
+    float amplitude = 1.0;
+    for (int i=0; i<4; ++i)
+    {
+        float2 uv = pixelIndex / texResolution;
+        uv *= numCellPerAxis;
+        float2 gridId = floor(uv);
+        float2 gridUV = frac(uv);
+
+        float2 bl = gridId + float2(0.0, 0.0);
+        float2 br = gridId + float2(1.0, 0.0);
+        float2 tl = gridId + float2(0.0, 1.0);
+        float2 tr = gridId + float2(1.0, 1.0);
+
+        float2 gradBl = randomVector(bl);
+        float2 gradBr = randomVector(br);
+        float2 gradTl = randomVector(tl);
+        float2 gradTr = randomVector(tr);
+
+        float2 distFromPixelToBl = gridUV - float2(0.0, 0.0);
+        float2 distFromPixelToBr = gridUV - float2(1.0, 0.0);
+        float2 distFromPixelToTl = gridUV - float2(0.0, 1.0);
+        float2 distFromPixelToTr = gridUV - float2(1.0, 1.0);
+
+        float dotBl = dot(gradBl, distFromPixelToBl);
+        float dotBr = dot(gradBr, distFromPixelToBr);
+        float dotTl = dot(gradTl, distFromPixelToTl);
+        float dotTr = dot(gradTr, distFromPixelToTr);
+    
+        float b = PerlinNoiseLerp(dotBl, dotBr, gridUV.x);
+        float t = PerlinNoiseLerp(dotTl, dotTr, gridUV.x);
+        float noise = PerlinNoiseLerp(b, t, gridUV.y);
+        color += amplitude * noise;
+
+        numCellPerAxis *= 2;
+        amplitude *= 0.5;
+    }
+
+    color = clamp(color, -1.0, 1.0);
+    color = color * .5f + .5f;
+
+    #ifdef _Invert
+        color = 1.0 - color;
+    #endif
+    
+    return float4(color, color, color, 1.0);
+}
+
 float perlin3D (int texResolution, int numCellPerAxis, float3 pixelIndex)
 {
     float3 uvw = pixelIndex / texResolution;
@@ -139,6 +191,7 @@ float perlin3D (int texResolution, int numCellPerAxis, float3 pixelIndex)
     float lerpBack = PerlinNoiseLerp(lerpLowerBack, lerpHigherBack, gridUVW.y);
 
     float noise = PerlinNoiseLerp(lerpFront, lerpBack, gridUVW.z);
+    
     noise = (noise + 1.0) / 2.0;
 
     #ifdef _Invert
@@ -148,6 +201,85 @@ float perlin3D (int texResolution, int numCellPerAxis, float3 pixelIndex)
     return noise;
 }
 
+float perlin3DFBM (int texResolution, int numCellPerAxis, int numOctaves, float3 pixelIndex)
+{
+    float noise = 0.0;
+    float amplitude = 1.0;
+    for (int octave = 0; octave < numOctaves; ++octave)
+    {
+        float3 uvw = pixelIndex / texResolution;
+        uvw *= numCellPerAxis;
+        float3 gridId = floor(uvw);
+        float3 gridUVW = frac(uvw);
+
+        // Corners of the cube
+        float3 LLL = gridId + float3(0.0, 0.0, 0.0);
+        float3 LLH = gridId + float3(1.0, 0.0, 0.0);
+        float3 LHL = gridId + float3(0.0, 1.0, 0.0);
+        float3 LHH = gridId + float3(1.0, 1.0, 0.0);
+        float3 HLL = gridId + float3(0.0, 0.0, 1.0);
+        float3 HLH = gridId + float3(1.0, 0.0, 1.0);
+        float3 HHL = gridId + float3(0.0, 1.0, 1.0);
+        float3 HHH = gridId + float3(1.0, 1.0, 1.0);
+
+        // Gradients at corners
+        float3 gradLLL = randomVector(LLL);
+        float3 gradLLH = randomVector(LLH);
+        float3 gradLHL = randomVector(LHL);
+        float3 gradLHH = randomVector(LHH);
+        float3 gradHLL = randomVector(HLL);
+        float3 gradHLH = randomVector(HLH);
+        float3 gradHHL = randomVector(HHL);
+        float3 gradHHH = randomVector(HHH);
+
+        // Distances to pixel from corners
+        float3 distFromPixelToLLL = gridUVW - float3(0.0, 0.0, 0.0);
+        float3 distFromPixelToLLH = gridUVW- float3(1.0, 0.0, 0.0);
+        float3 distFromPixelToLHL = gridUVW - float3(0.0, 1.0, 0.0);
+        float3 distFromPixelToLHH = gridUVW - float3(1.0, 1.0, 0.0);
+        float3 distFromPixelToHLL = gridUVW - float3(0.0, 0.0, 1.0);
+        float3 distFromPixelToHLH = gridUVW - float3(1.0, 0.0, 1.0);
+        float3 distFromPixelToHHL = gridUVW - float3(0.0, 1.0, 1.0);
+        float3 distFromPixelToHHH = gridUVW - float3(1.0, 1.0, 1.0);
+
+        // Dot products
+        float dotLLL = dot(gradLLL, distFromPixelToLLL);
+        float dotLLH = dot(gradLLH, distFromPixelToLLH);
+        float dotLHL = dot(gradLHL, distFromPixelToLHL);
+        float dotLHH = dot(gradLHH, distFromPixelToLHH);
+        float dotHLL = dot(gradHLL, distFromPixelToHLL);
+        float dotHLH = dot(gradHLH, distFromPixelToHLH);
+        float dotHHL = dot(gradHHL, distFromPixelToHHL);
+        float dotHHH = dot(gradHHH, distFromPixelToHHH);
+
+        // Interpolate
+        float lerpLowerFront = PerlinNoiseLerp(dotLLL, dotLLH, gridUVW.x);
+        float lerpHigherFront = PerlinNoiseLerp(dotLHL, dotLHH, gridUVW.x);
+        float lerpLowerBack = PerlinNoiseLerp(dotHLL, dotHLH, gridUVW.x);
+        float lerpHigherBack = PerlinNoiseLerp(dotHHL, dotHHH, gridUVW.x);
+
+        float lerpFront = PerlinNoiseLerp(lerpLowerFront, lerpHigherFront, gridUVW.y);
+        float lerpBack = PerlinNoiseLerp(lerpLowerBack, lerpHigherBack, gridUVW.y);
+
+        float result = PerlinNoiseLerp(lerpFront, lerpBack, gridUVW.z);
+
+        noise += amplitude * result;
+        
+        // Double frequency
+        numCellPerAxis *= 2;
+        // Half amplitude
+        amplitude *= 0.5;
+    }
+
+    noise = clamp(noise, -1.0, 1.0);
+    noise = noise * 0.5 + 0.5;
+
+    #ifdef _INVERT
+        noise = 1.0 - noise;
+    #endif
+    
+    return noise;
+}
 
 [numthreads(8,8,1)]
 void CSPerlin2D (uint3 id : SV_DispatchThreadID)
@@ -160,4 +292,10 @@ void CSPerlin2D (uint3 id : SV_DispatchThreadID)
 void CSPerlin3D (uint3 id : SV_DispatchThreadID)
 {
     _NoiseTex3D[id.xyz] = perlin3D(_Resolution, _CellResolution, id.xyz);
+}
+
+[numthreads(8,8,8)]
+void CSPerlinFBM (uint3 id : SV_DispatchThreadID)
+{
+    _NoiseTex3D[id.xyz] = perlin3DFBM(_Resolution, _CellResolution, _NumOctaves, id.xyz);
 }

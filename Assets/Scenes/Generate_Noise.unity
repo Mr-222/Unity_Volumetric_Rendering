@@ -220,10 +220,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   texResolution: 128
-  cellResolution: 4
+  cellResolution: 8
   numOctaves: 4
-  invert: 0
-  fileName: WorleyNoise2D
+  invert: 1
+  fileName: Perlin2DInverse
   worleyShader: {fileID: 7200000, guid: 9ea12396d0b489d48a7b42965898f66c, type: 3}
   perlinShader: {fileID: 7200000, guid: bb9ed995f27941c48d5fdaceceb61837, type: 3}
 --- !u!1 &1010989845
@@ -600,10 +600,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   texResolution: 128
-  cellResolution: 16
+  cellResolution: 4
   numOctaves: 4
   invert: 1
-  fileName: Perlin3D
+  fileName: PerlinFBM
   worleyShader: {fileID: 7200000, guid: 9ea12396d0b489d48a7b42965898f66c, type: 3}
   perlinShader: {fileID: 7200000, guid: bb9ed995f27941c48d5fdaceceb61837, type: 3}
 --- !u!1660057539 &9223372036854775807
