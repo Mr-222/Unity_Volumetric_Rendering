@@ -1,5 +1,48 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!114 &-8131685699865430074
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4eae6964d9539d441a5ecb7b12e795d3, type: 3}
+  m_Name: Volumetric Clouds
+  m_EditorClassIdentifier: 
+  m_Active: 1
+  settings:
+    material: {fileID: 2100000, guid: 13f201eab42c669478c52175201798be, type: 2}
+    rayMarchSetting:
+      blueNoise: {fileID: 2800000, guid: 0696b6ab5250e5d47b17825ab94fcb96, type: 3}
+      stepSize: 3.5
+      rayStep: 0.06
+      rayOffsetStrength: 2
+    lightingSetting:
+      phaseParams: {x: 1.5, y: 10.2, z: 0.4, w: -0.62}
+      lightAbsorptionThroughCloud: 0.36
+      lightAbsorptionTowardSun: 0.12
+      darknessThreshold: {r: 0, g: 0, b: 0, a: 0}
+      colA: {r: 1, g: 0.3272367, b: 0, a: 1}
+      colB: {r: 0.26824492, g: 0.3480544, b: 0.41509432, a: 1}
+      colorScaleA: 0.86
+      colorScaleB: 0.82
+    cloudShapeSetting:
+      maskNoise: {fileID: 2800000, guid: d65acfe961dc2d74abf5da0e0bd3839e, type: 3}
+      weatherMap: {fileID: 2800000, guid: 8f43a04bd0930ea42b7cc51343eaee5f, type: 3}
+      baseNoise: {fileID: 11700000, guid: 42bc11546ba703e4b838669fab682074, type: 2}
+      detailNoise: {fileID: 11700000, guid: 92a4ab3fa19ce7f40bff132f0e8e24d3, type: 2}
+      shapeTiling: {x: 0.002, y: 0.002, z: 0.002}
+      detailTiling: {x: 0.022, y: 0.022, z: 0.022}
+      shapeSpeed: 1.04
+      detailSpeed: -0.82
+      detailWeights: 4.75
+      heightWeights: -0.33
+      shapeNoiseWeights: {x: 6.18, y: 22.2, z: -1.1, w: -17.64}
+      densityOffset: -7.87
+      densityMultiplier: 1
 --- !u!114 &-1878332245247344467
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -12,7 +55,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f62c9c65cf3354c93be831c8bc075510, type: 3}
   m_Name: SSAO
   m_EditorClassIdentifier: 
-  m_Active: 1
+  m_Active: 0
   m_Settings:
     AOMethod: 0
     Downsample: 0
@@ -54,7 +97,8 @@ MonoBehaviour:
   m_RendererFeatures:
   - {fileID: -1878332245247344467}
   - {fileID: 9044397619149688387}
-  m_RendererFeatureMap: adc0de57c6d2eee5434ece20b727847d
+  - {fileID: -8131685699865430074}
+  m_RendererFeatureMap: adc0de57c6d2eee5434ece20b727847dc6b76582f072268f
   m_UseNativeRenderPass: 0
   postProcessData: {fileID: 11400000, guid: 41439944d30ece34e96484bdb6645b55, type: 2}
   xrSystemData: {fileID: 11400000, guid: 60e1133243b97e347b653163a8c01b64, type: 2}
@@ -92,7 +136,7 @@ MonoBehaviour:
     failOperation: 0
     zFailOperation: 0
   m_ShadowTransparentReceive: 1
-  m_RenderingMode: 1
+  m_RenderingMode: 2
   m_DepthPrimingMode: 0
   m_CopyDepthMode: 0
   m_AccurateGbufferNormals: 1
@@ -123,6 +167,6 @@ MonoBehaviour:
     upsampling: 2
     phaseFunction: 0
     gaussianBlur:
-      amount: 3
+      amount: 1
       samples: 7
     renderPassEvent: 550
