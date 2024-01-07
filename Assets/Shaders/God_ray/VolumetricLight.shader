@@ -101,7 +101,6 @@ Shader "Hidden/VolumetricLight"
                 return accumFog;
             }
             
-
             float4 frag(Varyings input) : SV_Target
             {
                 float3 worldPos = GetWorldPosFromUV(input.uv);

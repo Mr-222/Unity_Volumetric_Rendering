@@ -22,12 +22,6 @@ Varyings vert(Attributes input)
     return output;
 }
 
-float phase(float LoV) {
-    float blend = .5;
-    float hgBlend = HenyeyGreenStein(LoV, _PhaseParams.x) * (1 - blend) + HenyeyGreenStein(LoV, -_PhaseParams.y) * blend;
-    return _PhaseParams.z + hgBlend * _PhaseParams.w;
-}
-
 float sampleDensity(float3 rayPos) 
 {
     float4 boundsCentre = (_CloudBoundsMin + _CloudBoundsMax) * 0.5;
@@ -74,7 +68,7 @@ float sampleDensity(float3 rayPos)
     return 0;
 }
 
-float3 lightmarch(float3 position)
+float3 lightmarch(float3 position, float3 rayDir)
 {
     float3 dirToLight = normalize(_MainLightPosition).xyz;
                 
@@ -82,27 +76,33 @@ float3 lightmarch(float3 position)
     float stepSize = dstInsideBox / 8;
     float totalDensity = 0;
 
+    float LoV = dot(-rayDir, normalize(_MainLightPosition.xyz));
+    // 2-lobe HG phase
+    float3 phaseVal = lerp(HenyeyGreenStein(LoV, _G1), HenyeyGreenStein(LoV, _G2), _Alpha);
+
     for (int step = 0; step < 8; step++) {
         position += dirToLight * stepSize; 
         totalDensity += max(0, sampleDensity(position));
     }
-    float transmittance = exp(-totalDensity * _LightAbsorptionTowardSun);
+    float transmittance = exp(-totalDensity * stepSize * _LightAbsorptionTowardSun);
 
     // Remap transmittance to 3 color levels
     float3 cloudColor = lerp(_ColA, _MainLightColor, saturate(transmittance * _ColorScaleA));
-    cloudColor = lerp(_ColB, cloudColor, saturate(pow(transmittance * _ColorScaleB, 3)));
-    return _DarknessThreshold + transmittance * (1 - _DarknessThreshold) * cloudColor;
+    cloudColor = lerp(_ColB, cloudColor, saturate(pow(transmittance * _ColorScaleB, 3))) * _SunIntensity;
+
+    return _DarknessThreshold + transmittance * (1 - _DarknessThreshold) * cloudColor * phaseVal;
 }
 
 float4 raymarch(float3 rayOrigin, float3 rayDir, float dstLimit)
 {
+    if (dstLimit <= 0)
+        return float4(0, 0, 0, 1.0);
+    
     const float sizeLoop = 128;
-    float sumDensity = 1.0;
+    float transmittance = 1.0;
     float3 lightEnergy = 0;
     float dstTravelled = 0;
-    
-    float LoV = dot(-rayDir, normalize(_MainLightPosition.xyz));
-    float3 phaseVal = phase(LoV);
+    float sumDensity = 0;
     
     for (int j = 0; j < sizeLoop; ++j)
     {
@@ -110,19 +110,21 @@ float4 raymarch(float3 rayOrigin, float3 rayDir, float dstLimit)
         {
             float3 rayPos = rayOrigin + rayDir * dstTravelled;
             float density = sampleDensity(rayPos);
+            sumDensity += density;
             if (density > 0)
             {
-                float3 lightTransmittance = lightmarch(rayPos);
-                lightEnergy += density * _RayStep * sumDensity * lightTransmittance * phaseVal;
-                sumDensity *= exp(-density * _RayStep * _LightAbsorptionThroughCloud);
+                transmittance *= exp(-density * _RayStep * _LightAbsorptionThroughCloud);
+                float3 lightTransmittance = lightmarch(rayPos, rayDir);
+                float powderEffect = 1.0 - exp(-2.0 * sumDensity * _RayStep * _LightAbsorptionThroughCloud * _PowderEffectScale);
+                lightEnergy += density * _RayStep * 2.0 * transmittance * powderEffect * lightTransmittance;
             }
         }
         else
             break;
         dstTravelled += _RayStep;
     }
-
-    return float4(lightEnergy, sumDensity);
+    
+    return float4(lightEnergy, transmittance);
 }
             
 float4 frag(Varyings input) : SV_Target

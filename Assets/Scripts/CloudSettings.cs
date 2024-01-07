@@ -20,9 +20,13 @@ public class CloudSettings
     [Serializable]
     public struct Lighting
     {
-        public Vector4 phaseParams;
+        [Range(0, 1f)] public float g1;
+        [Range(-1f, 0)] public float g2;
+        [Range(0, 1f)] public float alpha;
+        public float sunIntensity;
         public float lightAbsorptionThroughCloud;
         public float lightAbsorptionTowardSun;
+        public float powderEffectScale;
         public Color darknessThreshold;
         public Color colA;
         public Color colB;
@@ -57,9 +61,13 @@ public class CloudSettings
         material.SetFloat("_RayOffsetStrength", rayMarchSetting.rayOffsetStrength);
         
         // Lighting settings
-        material.SetVector("_PhaseParams", lightingSetting.phaseParams);
+        material.SetFloat("_G1", lightingSetting.g1);
+        material.SetFloat("_G2", lightingSetting.g2);
+        material.SetFloat("_Alpha", lightingSetting.alpha);
+        material.SetFloat("_SunIntensity", lightingSetting.sunIntensity);
         material.SetFloat("_LightAbsorptionThroughCloud", lightingSetting.lightAbsorptionThroughCloud);
         material.SetFloat("_LightAbsorptionTowardSun", lightingSetting.lightAbsorptionTowardSun);
+        material.SetFloat("_PowderEffectScale", lightingSetting.powderEffectScale);
         material.SetVector("_DarknessThreshold", lightingSetting.darknessThreshold);
         material.SetVector("_ColA", lightingSetting.colA);
         material.SetVector("_ColB", lightingSetting.colB);

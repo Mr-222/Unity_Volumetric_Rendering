@@ -24,39 +24,48 @@ Shader "Custom/Cloud"
 
             float4 _CloudBoundsMin;
             float4 _CloudBoundsMax;
-            float4 _PhaseParams;
-            float _RayOffsetStrength;
+
+            // Raymarch
+            TEXTURE2D(_BlueNoise);
+            SAMPLER(sampler_BlueNoise);
             float _RayStep;
+            float _RayOffsetStrength;
+            
+            // Lighting
+            float _G1;
+            float _G2;
+            float _Alpha;
+            float _SunIntensity;
             float _LightAbsorptionThroughCloud;
             float _LightAbsorptionTowardSun;
+            float _PowderEffectScale;
             float3 _DarknessThreshold;
             float3 _ColA;
             float3 _ColB;
             float _ColorScaleA;
             float _ColorScaleB;
-            float3 _ShapeTiling;
-            float3 _DetailTiling;
-            float _ShapeSpeed;
-            float _DetailSpeed;
-            float _HeightWeights;
-            float4 _ShapeNoiseWeights;
-            float _DensityOffset;
-            float _DetailWeights;
-            float _DensityMultiplier;
-            
-            TEXTURE2D(_BlueNoise);
-            SAMPLER(sampler_BlueNoise);
-            TEXTURE2D(_MaskNoise);
-            SAMPLER(sampler_MaskNoise);
+
+            // Shaoe
             TEXTURE2D(_WeatherMap);
             SAMPLER(sampler_WeatherMap);
             TEXTURE3D(_NoiseBase);
             SAMPLER(sampler_NoiseBase);
             TEXTURE3D(_NoiseDetail);
             SAMPLER(sampler_NoiseDetail);
+            float3 _ShapeTiling;
+            float3 _DetailTiling;
+            float _ShapeSpeed;
+            float _DetailSpeed;
+            float _DetailWeights;
+            float _HeightWeights;
+            float4 _ShapeNoiseWeights;
+            float _DensityOffset;
+            float _DensityMultiplier;
             
             #pragma vertex vert
             #pragma fragment frag
+
+            #pragma multi_compile _ _POWDER_EFFECT
 
             #include "CloudsPass.hlsl"
 
