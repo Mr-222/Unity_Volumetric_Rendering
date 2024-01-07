@@ -13,7 +13,6 @@ public class CloudSettings
     public struct RayMarch
     {
         public Texture2D blueNoise;
-        public float stepSize;
         public float rayStep;
         public float rayOffsetStrength;
     }
@@ -34,7 +33,6 @@ public class CloudSettings
     [Serializable]
     public struct CloudShape
     {
-        public Texture2D maskNoise;
         public Texture2D weatherMap;
         public Texture3D baseNoise;
         public Texture3D detailNoise;
@@ -55,7 +53,6 @@ public class CloudSettings
         
         // Raymarch settings
         material.SetTexture("_BlueNoise", rayMarchSetting.blueNoise);
-        material.SetFloat("_Step", rayMarchSetting.stepSize);
         material.SetFloat("_RayStep", rayMarchSetting.rayStep);
         material.SetFloat("_RayOffsetStrength", rayMarchSetting.rayOffsetStrength);
         
@@ -70,7 +67,6 @@ public class CloudSettings
         material.SetFloat("_ColorScaleB", lightingSetting.colorScaleB);
         
         // Cloud shape settings
-        material.SetTexture("_MaskNoise", cloudShapeSetting.maskNoise);
         material.SetTexture("_WeatherMap", cloudShapeSetting.weatherMap);
         material.SetTexture("_NoiseBase", cloudShapeSetting.baseNoise);
         material.SetTexture("_NoiseDetail", cloudShapeSetting.detailNoise);
