@@ -96,7 +96,7 @@ float3 lightmarch(float3 position)
 
 float4 raymarch(float3 rayOrigin, float3 rayDir, float dstLimit)
 {
-    const float sizeLoop = 64;
+    const float sizeLoop = 128;
     float sumDensity = 1.0;
     float3 lightEnergy = 0;
     float dstTravelled = 0;

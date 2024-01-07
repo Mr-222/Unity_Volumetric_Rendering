@@ -17,8 +17,7 @@ MonoBehaviour:
     material: {fileID: 2100000, guid: 13f201eab42c669478c52175201798be, type: 2}
     rayMarchSetting:
       blueNoise: {fileID: 2800000, guid: 0696b6ab5250e5d47b17825ab94fcb96, type: 3}
-      stepSize: 3.5
-      rayStep: 0.06
+      rayStep: 1
       rayOffsetStrength: 2
     lightingSetting:
       phaseParams: {x: 2, y: 10.2, z: 0.4, w: -0.62}
@@ -30,14 +29,13 @@ MonoBehaviour:
       colorScaleA: 0.75
       colorScaleB: 0.8
     cloudShapeSetting:
-      maskNoise: {fileID: 2800000, guid: d65acfe961dc2d74abf5da0e0bd3839e, type: 3}
       weatherMap: {fileID: 2800000, guid: 8f43a04bd0930ea42b7cc51343eaee5f, type: 3}
       baseNoise: {fileID: 11700000, guid: 42bc11546ba703e4b838669fab682074, type: 2}
       detailNoise: {fileID: 11700000, guid: 92a4ab3fa19ce7f40bff132f0e8e24d3, type: 2}
       shapeTiling: {x: 0.002, y: 0.002, z: 0.002}
       detailTiling: {x: 0.002, y: 0.002, z: 0.002}
-      shapeSpeed: 0
-      detailSpeed: 0
+      shapeSpeed: 0.1
+      detailSpeed: 0.2
       detailWeights: 4.75
       heightWeights: -0.33
       shapeNoiseWeights: {x: 6.18, y: 22.2, z: -1.1, w: -17.64}
