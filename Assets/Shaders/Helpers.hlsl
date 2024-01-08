@@ -76,15 +76,10 @@ float2 rayBoxDst_new(float3 boundsMin, float3 boundsMax,
     float dstInsideBox = max(0, dstB - dstToBox);
     return float2(dstToBox, dstInsideBox);
 }
-//
-// float Remap(float original_value, float original_min, float original_max, float target_min, float target_max)
-// {
-//     return target_min + (original_value - original_min) / (original_max - original_min) * (target_max - target_min);
-// }
 
-float Remap(float original_value, float original_min, float original_max, float new_min, float new_max)
+float Remap(float original_value, float original_min, float original_max, float target_min, float target_max)
 {
-    return new_min + (((original_value - original_min) / (original_max - original_min)) * (new_max - new_min));
+    return target_min + (original_value - original_min) / (original_max - original_min) * (target_max - target_min);
 }
 
 float3 convertToBoxSpace(float3 p, float3 boxMin, float3 boxMax)
