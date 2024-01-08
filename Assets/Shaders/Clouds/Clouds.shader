@@ -22,8 +22,8 @@ Shader "Custom/Cloud"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
             #include "../Helpers.hlsl"
 
-            float4 _CloudBoundsMin;
-            float4 _CloudBoundsMax;
+            float3 _CloudBoundsMin;
+            float3 _CloudBoundsMax;
 
             // Raymarch
             TEXTURE2D(_BlueNoise);
@@ -56,8 +56,8 @@ Shader "Custom/Cloud"
             float3 _DetailTiling;
             float _ShapeSpeed;
             float _DetailSpeed;
-            float _DetailWeights;
-            float _HeightWeights;
+            float _DetailWeight;
+            float _HeightOffset;
             float4 _ShapeNoiseWeights;
             float _DensityOffset;
             float _DensityMultiplier;

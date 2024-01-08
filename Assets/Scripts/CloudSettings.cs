@@ -44,8 +44,8 @@ public class CloudSettings
         public Vector3 detailTiling;
         public float shapeSpeed;
         public float detailSpeed;
-        public float detailWeights;
-        public float heightWeights;
+        public float detailWeight;
+        [Range(-1f, 1f)] public float heightOffset;
         public Vector4 shapeNoiseWeights;
         public float densityOffset;
         public float densityMultiplier;
@@ -82,8 +82,8 @@ public class CloudSettings
         material.SetVector("_DetailTiling", cloudShapeSetting.detailTiling);
         material.SetFloat("_ShapeSpeed", cloudShapeSetting.shapeSpeed);
         material.SetFloat("_DetailSpeed", cloudShapeSetting.detailSpeed);
-        material.SetFloat("_DetailWeights", cloudShapeSetting.detailWeights);
-        material.SetFloat("_HeightWeights", cloudShapeSetting.heightWeights);
+        material.SetFloat("_DetailWeight", cloudShapeSetting.detailWeight);
+        material.SetFloat("_HeightOffset", cloudShapeSetting.heightOffset);
         material.SetVector("_ShapeNoiseWeights", cloudShapeSetting.shapeNoiseWeights);
         material.SetFloat("_DensityOffset", cloudShapeSetting.densityOffset);
         material.SetFloat("_DensityMultiplier", cloudShapeSetting.densityMultiplier);

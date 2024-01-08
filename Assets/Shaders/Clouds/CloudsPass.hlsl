@@ -21,10 +21,25 @@ Varyings vert(Attributes input)
                 
     return output;
 }
+float sampleGradient(float4 gradient, float height)
+{
+    return smoothstep(gradient.x, gradient.y, height) - smoothstep(gradient.z, gradient.w, height);
+}
+
+float GetHeightGradient(float heightFraction, float cloudType)
+{
+    const float4 CloudGradient1 = float4(0.0, 0.065, 0.203, 0.371); // stratus
+    const float4 CloudGradient2 = float4(0.0, 0.156, 0.468, 0.674); // cumulus
+    const float4 CloudGradient3 = float4(0.0, 0.188, 0.818, 1); // cumulonimbus
+
+    float4 gradient = lerp(lerp(CloudGradient1, CloudGradient2, cloudType * 2.0), CloudGradient3, saturate(cloudType - 0.5) * 2.0);
+	
+    return sampleGradient(gradient, heightFraction);
+}
 
 float sampleDensity(float3 rayPos) 
 {
-    float4 boundsCentre = (_CloudBoundsMin + _CloudBoundsMax) * 0.5;
+    float3 boundsCentre = (_CloudBoundsMin + _CloudBoundsMax) * 0.5;
     float3 size = _CloudBoundsMax.xyz - _CloudBoundsMin.xyz;
 
     float speedShape = _ShapeSpeed * _Time.y;
@@ -43,12 +58,15 @@ float sampleDensity(float3 rayPos)
     float dstFromEdgeZ = min(containerEdgeFadeDst, min(rayPos.z - _CloudBoundsMin.z, _CloudBoundsMax.z - rayPos.z));
     float edgeWeight = min(dstFromEdgeZ, dstFromEdgeX) / containerEdgeFadeDst;
 
-    float gMin = Remap(weatherMap.x, 0, 1, 0.1, 0.6);
-    float gMax = Remap(weatherMap.x, 0, 1, gMin, 0.9);
+    // float gMin = Remap(weatherMap.x, 0, 1, 0.1, 0.6);
+    // float gMax = Remap(weatherMap.x, 0, 1, gMin, 0.9);
+    // float heightPercent = (rayPos.y - _CloudBoundsMin.y) / size.y;
+    // float heightGradient = saturate(Remap(heightPercent, 0.0, gMin, 0, 1)) *saturate(Remap(heightPercent, 1, gMax, 0, 1));
+    // float heightGradient2 = saturate(Remap(heightPercent, 0.0, weatherMap.r, 1, 0)) *saturate(Remap(heightPercent, 0.0, gMin, 0, 1));
+    // heightGradient = saturate(lerp(heightGradient, heightGradient2, _HeightWeights));
+
     float heightPercent = (rayPos.y - _CloudBoundsMin.y) / size.y;
-    float heightGradient = saturate(Remap(heightPercent, 0.0, gMin, 0, 1)) *saturate(Remap(heightPercent, 1, gMax, 0, 1));
-    float heightGradient2 = saturate(Remap(heightPercent, 0.0, weatherMap.r, 1, 0)) *saturate(Remap(heightPercent, 0.0, gMin, 0, 1));
-    heightGradient = saturate(lerp(heightGradient, heightGradient2, _HeightWeights));
+    float heightGradient = GetHeightGradient(heightPercent, weatherMap.r + _HeightOffset);
 
     heightGradient *= edgeWeight;
 
@@ -61,7 +79,7 @@ float sampleDensity(float3 rayPos)
         float detailFBM = detailNoise.r;
         float oneMinusShape = 1 - baseShapeDensity;
                     
-        float cloudDensity = baseShapeDensity - detailFBM  * _DetailWeights * oneMinusShape * oneMinusShape * oneMinusShape;
+        float cloudDensity = baseShapeDensity - detailFBM  * _DetailWeight * oneMinusShape * oneMinusShape * oneMinusShape;
    
         return saturate(cloudDensity * _DensityMultiplier);
     }
@@ -71,13 +89,13 @@ float sampleDensity(float3 rayPos)
 float3 lightmarch(float3 position, float3 rayDir)
 {
     float3 currPos = position;
-    float3 dirToLight = normalize(_MainLightPosition).xyz;
+    float3 dirToLight = _MainLightPosition.xyz;
                 
     float dstInsideBox = rayBoxDst(_CloudBoundsMin, _CloudBoundsMax, position, dirToLight).y;
     float stepSize = dstInsideBox / 8;
     float totalDensity = 0;
 
-    float LoV = dot(-rayDir, normalize(_MainLightPosition.xyz));
+    float LoV = dot(-rayDir, _MainLightPosition.xyz);
     // 2-lobe HG phase
     float3 phaseVal = lerp(HenyeyGreenStein(LoV, _G1), HenyeyGreenStein(LoV, _G2), _Alpha);
 
@@ -87,7 +105,7 @@ float3 lightmarch(float3 position, float3 rayDir)
     }
     float transmittance = exp(-totalDensity * stepSize * _LightAbsorptionTowardSun);
     // Remap transmittance to 3 color levels
-    float3 cloudColor = lerp(_ColA, _MainLightColor, saturate(transmittance * _ColorScaleA));
+    float3 cloudColor = lerp(_ColA, _MainLightColor.rgb, saturate(transmittance * _ColorScaleA));
     cloudColor = lerp(_ColB, cloudColor, saturate(pow(transmittance * _ColorScaleB, 3))) * _SunIntensity;
 
     return _DarknessThreshold + transmittance * (1 - _DarknessThreshold) * cloudColor * phaseVal;
@@ -141,6 +159,8 @@ float4 frag(Varyings input) : SV_Target
     float2 rayToContainerInfo = rayBoxDst(_CloudBoundsMin, _CloudBoundsMax, rayPos, worldViewDir);
     float dstToBox = rayToContainerInfo.x;
     float dstInsideBox = rayToContainerInfo.y;
+    if (dstInsideBox == 0)
+        return float4(0.0, 0.0, 0.0, 1.0);
 
     float3 entryPoint = rayPos + worldViewDir * dstToBox;
     float dstLimit = min(depthEyeLinear - dstToBox, dstInsideBox);

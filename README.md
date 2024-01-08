@@ -14,10 +14,8 @@ Support for main directional light in Universal Render Pipeline.  Use physically
 
 ### Volumetric cloud
 
-![](./Pictures/Cloud2.png)
+<img title="" src="./Pictures/Cloud_1.png" alt="" data-align="inline">
 
 
 
-![](./Pictures/Cloud.png)
-
-
+![](./Pictures/Cloud_2.png)
