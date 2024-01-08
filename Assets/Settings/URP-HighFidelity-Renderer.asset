@@ -20,12 +20,16 @@ MonoBehaviour:
       rayStep: 1
       rayOffsetStrength: 2
     lightingSetting:
-      phaseParams: {x: 2, y: 10.2, z: 0.4, w: -0.62}
-      lightAbsorptionThroughCloud: 0.2
-      lightAbsorptionTowardSun: 0.34
-      darknessThreshold: {r: 0.03328584, g: 0.034412645, b: 0.03773582, a: 0}
-      colA: {r: 1, g: 0.3272367, b: 0, a: 1}
-      colB: {r: 0.2000267, g: 0.24014935, b: 0.2735849, a: 1}
+      g1: 0.153
+      g2: -0.497
+      alpha: 0.289
+      sunIntensity: 5
+      lightAbsorptionThroughCloud: 0.25
+      lightAbsorptionTowardSun: 0.02
+      powderEffectScale: 1
+      darknessThreshold: {r: 0, g: 0, b: 0, a: 0}
+      colA: {r: 1, g: 0.572231, b: 0.36320752, a: 1}
+      colB: {r: 0.15806337, g: 0.21116678, b: 0.3018868, a: 1}
       colorScaleA: 0.75
       colorScaleB: 0.8
     cloudShapeSetting:
@@ -34,10 +38,10 @@ MonoBehaviour:
       detailNoise: {fileID: 11700000, guid: 92a4ab3fa19ce7f40bff132f0e8e24d3, type: 2}
       shapeTiling: {x: 0.002, y: 0.002, z: 0.002}
       detailTiling: {x: 0.002, y: 0.002, z: 0.002}
-      shapeSpeed: 0.1
-      detailSpeed: 0.2
+      shapeSpeed: 0.08
+      detailSpeed: 0.08
       detailWeights: 4.75
-      heightWeights: -0.33
+      heightWeights: -0.51
       shapeNoiseWeights: {x: 6.18, y: 22.2, z: -1.1, w: -17.64}
       densityOffset: -7.87
       densityMultiplier: 1

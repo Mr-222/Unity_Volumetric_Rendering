@@ -70,6 +70,7 @@ float sampleDensity(float3 rayPos)
 
 float3 lightmarch(float3 position, float3 rayDir)
 {
+    float3 currPos = position;
     float3 dirToLight = normalize(_MainLightPosition).xyz;
                 
     float dstInsideBox = rayBoxDst(_CloudBoundsMin, _CloudBoundsMax, position, dirToLight).y;
@@ -81,11 +82,10 @@ float3 lightmarch(float3 position, float3 rayDir)
     float3 phaseVal = lerp(HenyeyGreenStein(LoV, _G1), HenyeyGreenStein(LoV, _G2), _Alpha);
 
     for (int step = 0; step < 8; step++) {
-        position += dirToLight * stepSize; 
-        totalDensity += max(0, sampleDensity(position));
+        currPos += dirToLight * stepSize; 
+        totalDensity += max(0, sampleDensity(currPos));
     }
     float transmittance = exp(-totalDensity * stepSize * _LightAbsorptionTowardSun);
-
     // Remap transmittance to 3 color levels
     float3 cloudColor = lerp(_ColA, _MainLightColor, saturate(transmittance * _ColorScaleA));
     cloudColor = lerp(_ColB, cloudColor, saturate(pow(transmittance * _ColorScaleB, 3))) * _SunIntensity;
@@ -113,10 +113,14 @@ float4 raymarch(float3 rayOrigin, float3 rayDir, float dstLimit)
             sumDensity += density;
             if (density > 0)
             {
-                transmittance *= exp(-density * _RayStep * _LightAbsorptionThroughCloud);
-                float3 lightTransmittance = lightmarch(rayPos, rayDir);
+                float sampleTransmittance = exp(-density * _RayStep * _LightAbsorptionThroughCloud);
+                transmittance *= sampleTransmittance;
                 float powderEffect = 1.0 - exp(-2.0 * sumDensity * _RayStep * _LightAbsorptionThroughCloud * _PowderEffectScale);
-                lightEnergy += density * _RayStep * 2.0 * transmittance * powderEffect * lightTransmittance;
+                float scatterTransmittance = 2.0 * transmittance * powderEffect;
+                // See slide 29 https://www.ea.com/frostbite/news/physically-based-sky-atmosphere-and-cloud-rendering
+                float3 S = lightmarch(rayPos, rayDir) * density;
+                float3 S_Int = scatterTransmittance * (S - S * sampleTransmittance) / (density * _LightAbsorptionThroughCloud);
+                lightEnergy += _RayStep * S_Int;
             }
         }
         else
