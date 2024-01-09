@@ -110,7 +110,7 @@ float4 raymarch(float3 rayOrigin, float3 rayDir, float dstLimit)
     if (dstLimit <= 0)
         return float4(0, 0, 0, 1.0);
     
-    const float sizeLoop = 128;
+    const float sizeLoop = 256;
     float transmittance = 1.0;
     float3 lightEnergy = 0;
     float dstTravelled = 0;

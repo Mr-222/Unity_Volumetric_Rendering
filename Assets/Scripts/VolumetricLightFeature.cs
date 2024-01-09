@@ -87,10 +87,6 @@ public class VolumetricLightFeature : ScriptableRendererFeature
 
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
-            base.Configure(cmd, cameraTextureDescriptor);
-            
-            var originalDescriptor = cameraTextureDescriptor;
-            
             cameraTextureDescriptor.colorFormat = RenderTextureFormat.ARGB64;
             cameraTextureDescriptor.msaaSamples = 1;
             cameraTextureDescriptor.width /= (int)settings.downsampling;

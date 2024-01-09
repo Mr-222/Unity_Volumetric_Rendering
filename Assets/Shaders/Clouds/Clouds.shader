@@ -14,8 +14,10 @@ Shader "Custom/Cloud"
 
         Pass
         {
+            Name "Draw Cloud"
+            
             Cull Off ZWrite Off ZTest Always
-            Blend One SrcAlpha
+            Blend One Zero
             
             HLSLPROGRAM
 
@@ -69,6 +71,54 @@ Shader "Custom/Cloud"
 
             #include "CloudsPass.hlsl"
 
+            ENDHLSL
+        }
+
+        Pass 
+        {
+            Name "Blend"
+            
+            Cull Off ZWrite Off ZTest Always
+            Blend One SrcAlpha
+            
+            HLSLPROGRAM
+
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"
+
+            #pragma vertex vert
+            #pragma fragment frag
+
+            TEXTURE2D(_MainTex);
+            SAMPLER(my_trilinear_clamp_sampler);
+
+            struct Attributes
+            {
+                float4 positionOS : POSITION;
+                float2 uv         : TEXCOORD0;
+            };
+
+            struct Varyings
+            {
+                float4 positionCS : SV_POSITION;
+                float2 uv         : TEXCOORD0;
+            };
+
+            Varyings vert(Attributes input)
+            {
+                Varyings output;
+                output.positionCS = TransformObjectToHClip(input.positionOS);
+                output.uv = input.uv;
+
+                return output;
+            }
+
+            float4 frag(Varyings input) : SV_Target
+            {
+                float4 cloud = SAMPLE_TEXTURE2D_LOD(_MainTex, my_trilinear_clamp_sampler, input.uv, 0);
+
+                return cloud;
+            }
+            
             ENDHLSL
         }
     }

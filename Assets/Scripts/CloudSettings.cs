@@ -8,6 +8,7 @@ public class CloudSettings
     public RayMarch rayMarchSetting;
     public Lighting lightingSetting;
     public CloudShape cloudShapeSetting;
+    public DownSample downSampling = DownSample.half;
     
     [Serializable]
     public struct RayMarch
@@ -49,6 +50,13 @@ public class CloudSettings
         public Vector4 shapeNoiseWeights;
         public float densityOffset;
         public float densityMultiplier;
+    }
+
+    public enum DownSample
+    {
+        off = 1,
+        half = 2,
+        quarter = 4
     }
 
     public void SetProperties()
