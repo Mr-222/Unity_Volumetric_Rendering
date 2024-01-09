@@ -205,6 +205,7 @@ float perlin3DFBM (int texResolution, int numCellPerAxis, int numOctaves, float3
 {
     float noise = 0.0;
     float amplitude = 1.0;
+    float weight = 0.0;
     for (int octave = 0; octave < numOctaves; ++octave)
     {
         float3 uvw = pixelIndex / texResolution;
@@ -264,7 +265,8 @@ float perlin3DFBM (int texResolution, int numCellPerAxis, int numOctaves, float3
         float result = PerlinNoiseLerp(lerpFront, lerpBack, gridUVW.z);
 
         noise += amplitude * result;
-        
+
+        weight += amplitude;
         // Double frequency
         numCellPerAxis *= 2;
         // Half amplitude
@@ -277,6 +279,8 @@ float perlin3DFBM (int texResolution, int numCellPerAxis, int numOctaves, float3
     #ifdef _INVERT
         noise = 1.0 - noise;
     #endif
+
+    noise /= weight;
     
     return noise;
 }

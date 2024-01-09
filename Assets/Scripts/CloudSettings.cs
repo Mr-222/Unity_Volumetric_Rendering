@@ -40,8 +40,8 @@ public class CloudSettings
         public Texture2D weatherMap;
         public Texture3D baseNoise;
         public Texture3D detailNoise;
-        public Vector3 shapeTiling;
-        public Vector3 detailTiling;
+        public float shapeTiling;
+        public float detailTiling;
         public float shapeSpeed;
         public float detailSpeed;
         public float detailWeight;
@@ -78,8 +78,8 @@ public class CloudSettings
         material.SetTexture("_WeatherMap", cloudShapeSetting.weatherMap);
         material.SetTexture("_NoiseBase", cloudShapeSetting.baseNoise);
         material.SetTexture("_NoiseDetail", cloudShapeSetting.detailNoise);
-        material.SetVector("_ShapeTiling", cloudShapeSetting.shapeTiling);
-        material.SetVector("_DetailTiling", cloudShapeSetting.detailTiling);
+        material.SetFloat("_ShapeTiling", cloudShapeSetting.shapeTiling);
+        material.SetFloat("_DetailTiling", cloudShapeSetting.detailTiling);
         material.SetFloat("_ShapeSpeed", cloudShapeSetting.shapeSpeed);
         material.SetFloat("_DetailSpeed", cloudShapeSetting.detailSpeed);
         material.SetFloat("_DetailWeight", cloudShapeSetting.detailWeight);

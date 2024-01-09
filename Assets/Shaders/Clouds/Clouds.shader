@@ -45,15 +45,15 @@ Shader "Custom/Cloud"
             float _ColorScaleA;
             float _ColorScaleB;
 
-            // Shaoe
+            // Shape
             TEXTURE2D(_WeatherMap);
             SAMPLER(sampler_WeatherMap);
             TEXTURE3D(_NoiseBase);
             SAMPLER(sampler_NoiseBase);
             TEXTURE3D(_NoiseDetail);
             SAMPLER(sampler_NoiseDetail);
-            float3 _ShapeTiling;
-            float3 _DetailTiling;
+            float _ShapeTiling;
+            float _DetailTiling;
             float _ShapeSpeed;
             float _DetailSpeed;
             float _DetailWeight;

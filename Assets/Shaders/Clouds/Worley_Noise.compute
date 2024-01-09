@@ -93,6 +93,7 @@ float worley3DFBM (StructuredBuffer<float3> points, int texResolution, int numCe
 {
     float noise = 0.0;
     float amplitude = 1.0;
+    float weight = 0.0;
     for (int octave = 0; octave < numOctaves; ++octave)
     {
         float3 uvz = pixelIndex / texResolution;
@@ -132,11 +133,14 @@ float worley3DFBM (StructuredBuffer<float3> points, int texResolution, int numCe
             noise += amplitude * minDistFromPixel;
         #endif
 
+        weight += amplitude;
         // Double frequency
         numCellPerAxis *= 2;
         // Half amplitude
         amplitude *= 0.5;
     }
+
+    noise /= weight;
     
     return noise;
 }

@@ -21,6 +21,7 @@ Varyings vert(Attributes input)
                 
     return output;
 }
+
 float sampleGradient(float4 gradient, float height)
 {
     return smoothstep(gradient.x, gradient.y, height) - smoothstep(gradient.z, gradient.w, height);
@@ -50,6 +51,7 @@ float sampleDensity(float3 rayPos)
                 
     float4 weatherMap = SAMPLE_TEXTURE2D_LOD(_WeatherMap, sampler_WeatherMap, uv+float2(speedShape*0.2, 0), 0);
     float4 shapeNoise = SAMPLE_TEXTURE3D_LOD(_NoiseBase, sampler_NoiseBase, uvwShape, 0);
+    
     float4 detailNoise = SAMPLE_TEXTURE3D_LOD(_NoiseDetail, sampler_NoiseDetail, uvwDetail, 0);
 
     // Edge falloff
@@ -57,13 +59,6 @@ float sampleDensity(float3 rayPos)
     float dstFromEdgeX = min(containerEdgeFadeDst, min(rayPos.x - _CloudBoundsMin.x, _CloudBoundsMax.x - rayPos.x));
     float dstFromEdgeZ = min(containerEdgeFadeDst, min(rayPos.z - _CloudBoundsMin.z, _CloudBoundsMax.z - rayPos.z));
     float edgeWeight = min(dstFromEdgeZ, dstFromEdgeX) / containerEdgeFadeDst;
-
-    // float gMin = Remap(weatherMap.x, 0, 1, 0.1, 0.6);
-    // float gMax = Remap(weatherMap.x, 0, 1, gMin, 0.9);
-    // float heightPercent = (rayPos.y - _CloudBoundsMin.y) / size.y;
-    // float heightGradient = saturate(Remap(heightPercent, 0.0, gMin, 0, 1)) *saturate(Remap(heightPercent, 1, gMax, 0, 1));
-    // float heightGradient2 = saturate(Remap(heightPercent, 0.0, weatherMap.r, 1, 0)) *saturate(Remap(heightPercent, 0.0, gMin, 0, 1));
-    // heightGradient = saturate(lerp(heightGradient, heightGradient2, _HeightWeights));
 
     float heightPercent = (rayPos.y - _CloudBoundsMin.y) / size.y;
     float heightGradient = GetHeightGradient(heightPercent, weatherMap.r + _HeightOffset);
@@ -78,9 +73,8 @@ float sampleDensity(float3 rayPos)
     {
         float detailFBM = detailNoise.r;
         float oneMinusShape = 1 - baseShapeDensity;
-                    
         float cloudDensity = baseShapeDensity - detailFBM  * _DetailWeight * oneMinusShape * oneMinusShape * oneMinusShape;
-   
+        
         return saturate(cloudDensity * _DensityMultiplier);
     }
     return 0;
