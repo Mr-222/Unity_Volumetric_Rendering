@@ -77,8 +77,8 @@ public class CloudSettings
         material.SetFloat("_LightAbsorptionTowardSun", lightingSetting.lightAbsorptionTowardSun);
         material.SetFloat("_PowderEffectScale", lightingSetting.powderEffectScale);
         material.SetVector("_DarknessThreshold", lightingSetting.darknessThreshold);
-        material.SetVector("_ColA", lightingSetting.colA);
-        material.SetVector("_ColB", lightingSetting.colB);
+        material.SetColor("_ColA", lightingSetting.colA);
+        material.SetColor("_ColB", lightingSetting.colB);
         material.SetFloat("_ColorScaleA", lightingSetting.colorScaleA);
         material.SetFloat("_ColorScaleB", lightingSetting.colorScaleB);
         
