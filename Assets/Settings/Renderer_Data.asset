@@ -17,19 +17,19 @@ MonoBehaviour:
     material: {fileID: 2100000, guid: 13f201eab42c669478c52175201798be, type: 2}
     rayMarchSetting:
       blueNoise: {fileID: 2800000, guid: 0696b6ab5250e5d47b17825ab94fcb96, type: 3}
-      rayStep: 1.5
+      rayStep: 1
       rayOffsetStrength: 2
     lightingSetting:
-      g1: 0.1
-      g2: -0.4
-      alpha: 0.55
-      sunIntensity: 5
-      lightAbsorptionThroughCloud: 0.35
-      lightAbsorptionTowardSun: 0.025
+      g1: 0.164
+      g2: -0.425
+      alpha: 0.5
+      sunIntensity: 3
+      lightAbsorptionThroughCloud: 0.3
+      lightAbsorptionTowardSun: 0.02
       powderEffectScale: 1
-      darknessThreshold: {r: 0, g: 0, b: 0, a: 0}
-      colA: {r: 1, g: 0.43646863, b: 0, a: 0}
-      colB: {r: 0.19090423, g: 0.21550068, b: 0.24528301, a: 0}
+      darknessThreshold: {r: 0.039382335, g: 0.041524123, b: 0.047169805, a: 0}
+      colA: {r: 1, g: 0.6795947, b: 0.3820755, a: 0}
+      colB: {r: 0.22583659, g: 0.24941649, b: 0.2735849, a: 0}
       colorScaleA: 0.75
       colorScaleB: 0.8
     cloudShapeSetting:
@@ -40,10 +40,10 @@ MonoBehaviour:
       detailTiling: 0.002
       shapeSpeed: 0.08
       detailSpeed: 0.08
-      detailWeight: 2.05
-      heightOffset: -0.324
-      shapeNoiseWeights: {x: 1.27, y: -0.1, z: 0, w: 0.36}
-      densityOffset: -5
+      detailWeight: 5.88
+      heightOffset: 0.594
+      shapeNoiseWeights: {x: 6.18, y: 26.26, z: -1.1, w: -17.64}
+      densityOffset: -7
       densityMultiplier: 1
     downSampling: 2
 --- !u!114 &-1878332245247344467
@@ -91,7 +91,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: de640fe3d0db1804a85f9fc8f5cadab6, type: 3}
-  m_Name: URP-HighFidelity-Renderer
+  m_Name: Renderer_Data
   m_EditorClassIdentifier: 
   debugShaders:
     debugReplacementPS: {fileID: 4800000, guid: cf852408f2e174538bcd9b7fda1c5ae7,
