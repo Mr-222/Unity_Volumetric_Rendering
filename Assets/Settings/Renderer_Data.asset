@@ -20,9 +20,9 @@ MonoBehaviour:
       rayStep: 1
       rayOffsetStrength: 2
     lightingSetting:
-      g1: 0.164
-      g2: -0.425
-      alpha: 0.5
+      g1: 0
+      g2: -0.206
+      alpha: 0.537
       sunIntensity: 3
       lightAbsorptionThroughCloud: 0.3
       lightAbsorptionTowardSun: 0.02
@@ -45,7 +45,7 @@ MonoBehaviour:
       shapeNoiseWeights: {x: 6.18, y: 26.26, z: -1.1, w: -17.64}
       densityOffset: -7
       densityMultiplier: 1
-    downSampling: 2
+    downSampling: 4
 --- !u!114 &-1878332245247344467
 MonoBehaviour:
   m_ObjectHideFlags: 0
