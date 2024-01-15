@@ -20,15 +20,15 @@ MonoBehaviour:
       rayStep: 1
       rayOffsetStrength: 2
     lightingSetting:
-      g1: 0
-      g2: -0.206
-      alpha: 0.537
-      sunIntensity: 3
-      lightAbsorptionThroughCloud: 0.3
-      lightAbsorptionTowardSun: 0.02
+      g1: 0.118
+      g2: -0.462
+      alpha: 0.429
+      sunIntensity: 6.21
+      lightAbsorptionThroughCloud: 0.75
+      lightAbsorptionTowardSun: 0.03
       powderEffectScale: 1
-      darknessThreshold: {r: 0.039382335, g: 0.041524123, b: 0.047169805, a: 0}
-      colA: {r: 1, g: 0.6795947, b: 0.3820755, a: 0}
+      darknessThreshold: {r: 0.06261123, g: 0.06362355, b: 0.066037714, a: 0}
+      colA: {r: 0.4716981, g: 0.44282955, b: 0.41607332, a: 0}
       colB: {r: 0.22583659, g: 0.24941649, b: 0.2735849, a: 0}
       colorScaleA: 0.75
       colorScaleB: 0.8
@@ -40,12 +40,12 @@ MonoBehaviour:
       detailTiling: 0.002
       shapeSpeed: 0.08
       detailSpeed: 0.08
-      detailWeight: 5.88
-      heightOffset: 0.594
+      detailWeight: 0.56
+      heightOffset: 0.064
       shapeNoiseWeights: {x: 6.18, y: 26.26, z: -1.1, w: -17.64}
       densityOffset: -7
       densityMultiplier: 1
-    downSampling: 4
+    downSampling: 2
 --- !u!114 &-1878332245247344467
 MonoBehaviour:
   m_ObjectHideFlags: 0

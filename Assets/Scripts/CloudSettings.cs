@@ -24,7 +24,7 @@ public class CloudSettings
         [Range(0, 1f)] public float g1;
         [Range(-1f, 0)] public float g2;
         [Range(0, 1f)] public float alpha;
-        public float sunIntensity;
+        [Range(0, 10f)] public float sunIntensity;
         public float lightAbsorptionThroughCloud;
         public float lightAbsorptionTowardSun;
         public float powderEffectScale;
